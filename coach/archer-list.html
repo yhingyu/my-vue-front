@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archer List - My Archery Club</title>
+    <script src="https://unpkg.com/vue@3.0.2"></script>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <div id="app">
+        <div v-if="isLoading" class="loading">
+            Loading...
+        </div>
+        
+        <div v-else-if="isAuthenticated && userInfo">
+            <div class="header">
+                <div class="header-left">
+                    <h1>🏹 Archer Management</h1>
+                    <nav class="main-nav">
+                        <a href="index.html">Home</a>
+                        <a href="dashboard.html">Dashboard</a>
+                        <a href="archer-list.html" class="active">Archers</a>
+                        <a href="profile.html">Profile</a>
+                    </nav>
+                </div>
+                <div class="user-info">
+                    <span>Hello, {{ userInfo.firstName || userInfo.email }}!</span>
+                    <span class="badge badge-coach">{{ userInfo.role }}</span>
+                    <button @click="logout" class="logout-btn">Logout</button>
+                </div>
+            </div>
+            
+            <div class="content">
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Manage Archers</h2>
+                        <div class="header-actions">
+                            <input v-model="searchTerm" type="text" placeholder="Search archers..." class="search-input">
+                            <button class="btn btn-primary" @click="refreshMembers">Refresh List</button>
+                        </div>
+                    </div>
+                    
+                    <div v-if="membersLoading" class="loading">Loading archers...</div>
+                    
+                    <div v-else class="members-grid">
+                        <div v-for="member in filteredMembers" :key="member.id" class="member-card">
+                            <div class="member-info">
+                                <h4>{{ member.firstName }} {{ member.lastName }}</h4>
+                                <p class="member-email">{{ member.user.email }}</p>
+                                <p class="member-school" v-if="member.schoolName">{{ member.schoolName }}</p>
+                                <p class="member-joined">Joined: {{ formatDate(member.dateJoined) }}</p>
+                                <div class="member-stats">
+                                    <span class="stat">Sessions: {{ member.sessionCount || 0 }}</span>
+                                    <span class="stat">Progress: {{ member.progressScore || 'N/A' }}</span>
+                                </div>
+                            </div>
+                            <div class="member-actions">
+                                <button class="btn btn-sm btn-secondary" @click="viewMemberProfile(member)">View Profile</button>
+                                <button class="btn btn-sm btn-primary" @click="trackProgress(member)">Track Progress</button>
+                                <button class="btn btn-sm btn-info" @click="scheduleSession(member)">Schedule</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="filteredMembers.length === 0 && !membersLoading" class="empty-state">
+                        <h3>No archers found</h3>
+                        <p v-if="searchTerm">Try adjusting your search terms.</p>
+                        <p v-else>No archers are currently registered.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/archer-list.js"></script>
+</body>
+</html>

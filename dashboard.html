@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - My Archery Club</title>
+    <script src="https://unpkg.com/vue@3.0.2"></script>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <div id="app">
+        <div v-if="isLoading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading your dashboard...</p>
+        </div>
+        
+        <div v-else-if="isAuthenticated" class="dashboard-container">
+            <!-- Header with role-specific styling -->
+            <header class="dashboard-header" :class="userInfo?.role ? 'header-' + userInfo.role.toLowerCase() : ''">
+                <div class="header-content">
+                    <div class="header-left">
+                        <h1>🏹 My Archery Club</h1>
+                        <div class="role-badge" :class="userInfo?.role ? 'badge-' + userInfo.role.toLowerCase() : ''">
+                            <span class="role-icon">{{ getRoleIcon(userInfo?.role) }}</span>
+                            <span>{{ userInfo?.role || 'User' }} Dashboard</span>
+                        </div>
+                    </div>
+                    
+                    <div class="header-right">
+                        <div class="user-info">
+                            <span class="welcome">Welcome, {{ getUserDisplayName() }}!</span>
+                            <button @click="logout" class="logout-btn">Logout</button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Navigation Tabs -->
+            <nav class="dashboard-nav">
+                <button 
+                    v-for="tab in availableTabs" 
+                    :key="tab.id"
+                    @click="activeTab = tab.id"
+                    :class="{ active: activeTab === tab.id }"
+                    class="nav-tab"
+                >
+                    {{ tab.icon }} {{ tab.label }}
+                </button>
+            </nav>
+
+            <!-- Main Content Area -->
+            <main class="dashboard-main">
+                <!-- Overview Tab -->
+                <div v-if="activeTab === 'overview'" class="tab-content">
+                    <div class="stats-grid">
+                        <!-- Admin Stats -->
+                        <div v-if="isAdmin()" class="stat-card admin-stat">
+                            <div class="stat-icon">👥</div>
+                            <div class="stat-content">
+                                <h3>Total Users</h3>
+                                <p class="stat-number">{{ dashboardData.totalUsers || 0 }}</p>
+                            </div>
+                        </div>
+                        
+                        <div v-if="isAdmin()" class="stat-card admin-stat">
+                            <div class="stat-icon">🎯</div>
+                            <div class="stat-content">
+                                <h3>Active Coaches</h3>
+                                <p class="stat-number">{{ dashboardData.totalCoaches || 0 }}</p>
+                            </div>
+                        </div>
+                        
+                        <div v-if="isAdmin()" class="stat-card admin-stat">
+                            <div class="stat-icon">🏹</div>
+                            <div class="stat-content">
+                                <h3>Total Archers</h3>
+                                <p class="stat-number">{{ dashboardData.totalArchers || 0 }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Coach Stats -->
+                        <div v-if="isCoach()" class="stat-card coach-stat">
+                            <div class="stat-icon">👥</div>
+                            <div class="stat-content">
+                                <h3>My Archers</h3>
+                                <p class="stat-number">{{ dashboardData.myArchers || 12 }}</p>
+                            </div>
+                        </div>
+                        
+                        <div v-if="isCoach()" class="stat-card coach-stat">
+                            <div class="stat-icon">📅</div>
+                            <div class="stat-content">
+                                <h3>Sessions This Week</h3>
+                                <p class="stat-number">{{ dashboardData.weekSessions || 8 }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Archer Stats -->
+                        <div v-if="isArcher()" class="stat-card archer-stat">
+                            <div class="stat-icon">🎯</div>
+                            <div class="stat-content">
+                                <h3>Current Score</h3>
+                                <p class="stat-number">{{ dashboardData.currentScore || 8.5 }}</p>
+                            </div>
+                        </div>
+                        
+                        <div v-if="isArcher()" class="stat-card archer-stat">
+                            <div class="stat-icon">⏱️</div>
+                            <div class="stat-content">
+                                <h3>Practice Hours</h3>
+                                <p class="stat-number">{{ dashboardData.practiceHours || 45 }}</p>
+                            </div>
+                        </div>
+                        
+                        <div v-if="isArcher()" class="stat-card archer-stat">
+                            <div class="stat-icon">📈</div>
+                            <div class="stat-content">
+                                <h3>Sessions</h3>
+                                <p class="stat-number">{{ dashboardData.totalSessions || 23 }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="quick-actions">
+                        <h3>Quick Actions</h3>
+                        <div class="action-buttons">
+                            <!-- Admin Actions -->
+                            <button v-if="isAdmin()" @click="manageUsers" class="action-btn admin-btn">
+                                👥 Manage Users
+                            </button>
+                            <button v-if="isAdmin()" @click="viewSystemLogs" class="action-btn admin-btn">
+                                📊 System Reports
+                            </button>
+                            
+                            <!-- Coach Actions -->
+                            <button v-if="isCoach()" @click="scheduleSession" class="action-btn coach-btn">
+                                📅 Schedule Session
+                            </button>
+                            <button v-if="isCoach()" @click="viewProgress" class="action-btn coach-btn">
+                                📈 Track Progress
+                            </button>
+                            
+                            <!-- Archer Actions -->
+                            <button v-if="isArcher()" @click="recordPractice" class="action-btn archer-btn">
+                                🎯 Record Practice
+                            </button>
+                            <button v-if="isArcher()" @click="viewSchedule" class="action-btn archer-btn">
+                                📅 My Schedule
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Management Tab (Admin only) -->
+                <div v-if="activeTab === 'users' && isAdmin()" class="tab-content">
+                    <h2>User Management</h2>
+                    <div class="users-table">
+                        <p>User management features coming soon...</p>
+                        <div class="placeholder-content">
+                            <div class="mock-table">
+                                <div class="table-header">
+                                    <span>Name</span>
+                                    <span>Email</span>
+                                    <span>Role</span>
+                                    <span>Status</span>
+                                </div>
+                                <div class="table-row">
+                                    <span>John Coach</span>
+                                    <span>coach1@archeryclub.com</span>
+                                    <span class="badge-coach">COACH</span>
+                                    <span class="status-active">Active</span>
+                                </div>
+                                <div class="table-row">
+                                    <span>Sarah Archer</span>
+                                    <span>archer1@archeryclub.com</span>
+                                    <span class="badge-archer">ARCHER</span>
+                                    <span class="status-active">Active</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sessions Tab (Coach/Archer) -->
+                <div v-if="activeTab === 'sessions'" class="tab-content">
+                    <h2>{{ isCoach() ? 'Manage Sessions' : 'My Sessions' }}</h2>
+                    <div class="sessions-content">
+                        <p>{{ isCoach() ? 'Session management' : 'Session tracking' }} features coming soon...</p>
+                        <div class="placeholder-content">
+                            <div class="session-card" v-for="i in 3" :key="i">
+                                <div class="session-header">
+                                    <h4>Training Session {{ i }}</h4>
+                                    <span class="session-date">{{ getDateString(i) }}</span>
+                                </div>
+                                <div class="session-details">
+                                    <p><strong>Duration:</strong> 2 hours</p>
+                                    <p><strong>Focus:</strong> Accuracy training</p>
+                                    <p v-if="isArcher()"><strong>Score:</strong> 8.{{ i + 2 }}/10</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Tab -->
+                <div v-if="activeTab === 'profile'" class="tab-content">
+                    <h2>My Profile</h2>
+                    <div class="profile-content">
+                        <div class="profile-info">
+                            <div class="profile-avatar">
+                                <span class="avatar-placeholder">{{ getInitials() }}</span>
+                            </div>
+                            <div class="profile-details">
+                                <h3>{{ getUserDisplayName() }}</h3>
+                                <p class="profile-email">{{ userInfo.email }}</p>
+                                <div class="profile-role">
+                                    <span class="role-badge" :class="userInfo?.role ? 'badge-' + userInfo.role.toLowerCase() : ''">
+                                        {{ getRoleIcon(userInfo?.role) }} {{ userInfo?.role || 'User' }}
+                                    </span>
+                                </div>
+                                
+                                <div v-if="profile" class="profile-meta">
+                                    <p><strong>Member Since:</strong> {{ formatDate(profile.dateJoined) }}</p>
+                                    <p v-if="profile.firstName"><strong>Full Name:</strong> {{ profile.firstName }} {{ profile.lastName }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="profile-actions">
+                            <button @click="editProfile" class="action-btn">✏️ Edit Profile</button>
+                            <button @click="changePassword" class="action-btn">🔒 Change Password</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        
+        <!-- Unauthorized Access -->
+        <div v-else class="unauthorized">
+            <h2>Access Denied</h2>
+            <p>You need to be logged in to access this dashboard.</p>
+            <button @click="redirectToLogin" class="btn btn-primary">Go to Login</button>
+        </div>
+    </div>
+
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

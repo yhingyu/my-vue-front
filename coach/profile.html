@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coach Profile - My Archery Club</title>
+    <script src="https://unpkg.com/vue@3.0.2"></script>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <div id="app">
+        <div v-if="isLoading" class="loading">
+            Loading...
+        </div>
+        
+        <div v-else-if="isAuthenticated && userInfo">
+            <div class="header">
+                <div class="header-left">
+                    <h1>🏹 Coach Profile</h1>
+                    <nav class="main-nav">
+                        <a href="index.html">Home</a>
+                        <a href="dashboard.html">Dashboard</a>
+                        <a href="archer-list.html">Archers</a>
+                        <a href="profile.html" class="active">Profile</a>
+                    </nav>
+                </div>
+                <div class="user-info">
+                    <span>Hello, {{ userInfo.firstName || userInfo.email }}!</span>
+                    <span class="badge badge-coach">{{ userInfo.role }}</span>
+                    <button @click="logout" class="logout-btn">Logout</button>
+                </div>
+            </div>
+            
+            <div class="content">
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Coach Profile</h2>
+                        <button class="btn btn-primary" @click="editMode = !editMode">
+                            {{ editMode ? 'Cancel' : 'Edit Profile' }}
+                        </button>
+                    </div>
+                    
+                    <div v-if="profileLoading" class="loading">Loading profile...</div>
+                    
+                    <div v-else-if="profile" class="profile-container">
+                        <div class="profile-section">
+                            <h3>Personal Information</h3>
+                            <div class="profile-grid">
+                                <div class="profile-field">
+                                    <label>Email:</label>
+                                    <span>{{ userInfo.email }}</span>
+                                </div>
+                                <div class="profile-field">
+                                    <label>Role:</label>
+                                    <span class="badge badge-coach">{{ userInfo.role }}</span>
+                                </div>
+                                <div class="profile-field">
+                                    <label>First Name:</label>
+                                    <input v-if="editMode" v-model="profileEdit.firstName" type="text" class="form-input">
+                                    <span v-else>{{ profile.firstName || 'Not set' }}</span>
+                                </div>
+                                <div class="profile-field">
+                                    <label>Last Name:</label>
+                                    <input v-if="editMode" v-model="profileEdit.lastName" type="text" class="form-input">
+                                    <span v-else>{{ profile.lastName || 'Not set' }}</span>
+                                </div>
+                                <div class="profile-field">
+                                    <label>Date of Birth:</label>
+                                    <input v-if="editMode" v-model="profileEdit.dob" type="date" class="form-input">
+                                    <span v-else>{{ formatDate(profile.dob) || 'Not set' }}</span>
+                                </div>
+                                <div class="profile-field">
+                                    <label>Phone:</label>
+                                    <input v-if="editMode" v-model="profileEdit.phone" type="tel" class="form-input">
+                                    <span v-else>{{ profile.phone || 'Not set' }}</span>
+                                </div>
+                                <div class="profile-field">
+                                    <label>City:</label>
+                                    <input v-if="editMode" v-model="profileEdit.city" type="text" class="form-input">
+                                    <span v-else>{{ profile.city || 'Not set' }}</span>
+                                </div>
+                                <div class="profile-field">
+                                    <label>Years of Experience:</label>
+                                    <input v-if="editMode" v-model="profileEdit.experience" type="number" class="form-input">
+                                    <span v-else>{{ profile.experience || 'Not set' }} years</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="profile-section">
+                            <h3>Professional Information</h3>
+                            <div class="profile-grid">
+                                <div class="profile-field">
+                                    <label>Certifications:</label>
+                                    <textarea v-if="editMode" v-model="profileEdit.certifications" class="form-input" rows="3"></textarea>
+                                    <span v-else>{{ profile.certifications || 'Not set' }}</span>
+                                </div>
+                                <div class="profile-field">
+                                    <label>Specialization:</label>
+                                    <input v-if="editMode" v-model="profileEdit.specialization" type="text" class="form-input">
+                                    <span v-else>{{ profile.specialization || 'Not set' }}</span>
+                                </div>
+                                <div class="profile-field">
+                                    <label>Bio:</label>
+                                    <textarea v-if="editMode" v-model="profileEdit.bio" class="form-input" rows="4"></textarea>
+                                    <span v-else>{{ profile.bio || 'Not set' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="profile-section">
+                            <h3>Statistics</h3>
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-number">{{ archersCount }}</div>
+                                    <div class="stat-label">Archers Coached</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number">{{ sessionsCount }}</div>
+                                    <div class="stat-label">Sessions Conducted</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number">{{ profile.experience || 0 }}</div>
+                                    <div class="stat-label">Years Experience</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="editMode" class="profile-actions">
+                            <button class="btn btn-primary" @click="saveProfile">Save Changes</button>
+                            <button class="btn btn-secondary" @click="cancelEdit">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/coach-profile.js"></script>
+</body>
+</html>

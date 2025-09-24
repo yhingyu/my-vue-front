@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - My Archery Club</title>
+    <script src="https://unpkg.com/vue@3.0.2"></script>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <div id="app">
+        <div v-if="isLoading" class="loading">
+            Loading...
+        </div>
+        
+        <div v-else-if="isAuthenticated && userInfo">
+            <div class="header">
+                <div class="header-left">
+                    <h1>🔧 Admin Dashboard</h1>
+                    <nav class="main-nav">
+                        <a href="index.html">Home</a>
+                        <a href="dashboard.html" class="active">Dashboard</a>
+                        <a href="profile.html">Profile</a>
+                    </nav>
+                </div>
+                <div class="user-info">
+                    <span>Hello, {{ userInfo.firstName || userInfo.email }}!</span>
+                    <span class="badge badge-admin">{{ userInfo.role }}</span>
+                    <button @click="logout" class="logout-btn">Logout</button>
+                </div>
+            </div>
+            
+            <div class="content">
+                <div class="dashboard-section">
+                    <h2>System Overview</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ totalUsers }}</div>
+                            <div class="stat-label">Total Users</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ totalCoaches }}</div>
+                            <div class="stat-label">Coaches</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ totalArchers }}</div>
+                            <div class="stat-label">Archers</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ systemHealth }}</div>
+                            <div class="stat-label">System Health</div>
+                        </div>
+                    </div>
+
+                    <div class="admin-sections">
+                        <div class="admin-section">
+                            <h3>User Management</h3>
+                            <div class="user-list">
+                                <div v-for="user in recentUsers" :key="user.id" class="user-item">
+                                    <div class="user-info">
+                                        <strong>{{ user.email }}</strong>
+                                        <span class="user-role">{{ user.role }}</span>
+                                        <span class="user-status" :class="user.isActive ? 'active' : 'inactive'">
+                                            {{ user.isActive ? 'Active' : 'Inactive' }}
+                                        </span>
+                                    </div>
+                                    <div class="user-actions">
+                                        <button class="btn btn-sm btn-secondary" @click="editUser(user)">Edit</button>
+                                        <button class="btn btn-sm btn-warning" @click="toggleUserStatus(user)">
+                                            {{ user.isActive ? 'Deactivate' : 'Activate' }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="admin-section">
+                            <h3>System Logs</h3>
+                            <div class="log-list">
+                                <div v-for="log in systemLogs" :key="log.id" class="log-item">
+                                    <div class="log-time">{{ formatDate(log.timestamp) }}</div>
+                                    <div class="log-message">{{ log.message }}</div>
+                                    <div class="log-level" :class="log.level">{{ log.level }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/admin-dashboard.js"></script>
+</body>
+</html>

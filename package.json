@@ -1,0 +1,16 @@
+{
+  "name": "my-vue-front",
+  "version": "1.0.0",
+  "description": "Frontend for My Archery Club application",
+  "main": "index.html",
+  "scripts": {
+    "start": "http-server -p 8080 -c-1",
+    "dev": "http-server -p 8080 -c-1 -o"
+  },
+  "keywords": ["vue", "archery", "frontend"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Archery Club App</title>
+    <script src="https://unpkg.com/vue@3.0.2"></script>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <div id="app">
+        <div v-if="isLoading" class="loading">
+            Loading...
+        </div>
+        
+        <div v-else-if="isAuthenticated">
+            <div class="header">
+                <h1>🏹 Welcome to My Archery Club</h1>
+                <div class="user-info" v-if="userInfo">
+                    <span>Hello, {{ userInfo.firstName || userInfo.email }}!</span>
+                    <span class="badge" :class="'badge-' + userInfo.role.toLowerCase()">{{ userInfo.role }}</span>
+                    <button @click="logout" class="logout-btn">Logout</button>
+                </div>
+            </div>
+            
+            <div class="content">
+                <div class="dashboard-selector">
+                    <h2>Choose Your Dashboard</h2>
+                    <p>Select the appropriate dashboard for your role:</p>
+                    
+                    <div class="dashboard-options">
+                        <!-- Admin Dashboard -->
+                        <div v-if="userInfo && userInfo.role === 'ADMIN'" class="dashboard-card">
+                            <div class="dashboard-icon">👑</div>
+                            <h3>Admin Dashboard</h3>
+                            <p>Manage the entire archery club system, users, and settings.</p>
+                            <button @click="goToAdminDashboard" class="btn btn-primary">Go to Admin Dashboard</button>
+                        </div>
+                        
+                        <!-- Coach Dashboard -->
+                        <div v-if="userInfo && (userInfo.role === 'ADMIN' || userInfo.role === 'COACH')" class="dashboard-card">
+                            <div class="dashboard-icon">🎯</div>
+                            <h3>Coach Dashboard</h3>
+                            <p>Manage members, track progress, and schedule training sessions.</p>
+                            <button @click="goToCoachDashboard" class="btn btn-primary">Go to Coach Dashboard</button>
+                        </div>
+                        
+                        <!-- Archer Dashboard -->
+                        <div v-if="userInfo && userInfo.role === 'ARCHER'" class="dashboard-card">
+                            <div class="dashboard-icon">🏹</div>
+                            <h3>My Archery Dashboard</h3>
+                            <p>View your profile, track progress, and manage your training schedule.</p>
+                            <button @click="goToArcherDashboard" class="btn btn-primary">Go to My Dashboard</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Auto-redirect message -->
+                    <div v-if="autoRedirecting" class="auto-redirect">
+                        <p>Redirecting you to your dashboard...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Welcome section for non-authenticated users -->
+        <div v-else>
+            <div class="header">
+                <h1>🏹 Welcome to My Archery Club</h1>
+            </div>
+            
+            <div class="content">
+                <div class="welcome-section">
+                    <h2>Get Started</h2>
+                    <p>Welcome to the My Archery Club management system. Please sign in to access your dashboard.</p>
+                    
+                    <div class="auth-options">
+                        <button @click="goToLogin" class="btn btn-primary">Sign In</button>
+                    </div>
+                    
+                    <div class="demo-accounts">
+                        <h3>Demo Accounts</h3>
+                        <p>You can use these accounts to test the system:</p>
+                        <ul>
+                            <li><strong>Admin:</strong> admin@archeryclub.com (password: admin123)</li>
+                            <li><strong>Coach:</strong> coach1@archeryclub.com (password: coach123)</li>
+                            <li><strong>Archer:</strong> archer1@archeryclub.com (password: archer123)</li>
+                        </ul>
+                        
+                        <div class="debug-links" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;">
+                            <h4>Debug Links (for testing)</h4>
+                            <p><a href="admin/dashboard.html">Admin Dashboard</a> | 
+                               <a href="coach/dashboard.html">Coach Dashboard</a> | 
+                               <a href="archer/dashboard.html">Archer Dashboard</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>        

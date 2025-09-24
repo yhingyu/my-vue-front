@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coach Dashboard - My Archery Club</title>
+    <script src="https://unpkg.com/vue@3.0.2"></script>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <div id="app">
+        <div v-if="isLoading" class="loading">
+            Loading...
+        </div>
+        
+        <div v-else-if="isAuthenticated && userInfo">
+            <div class="header">
+                <div class="header-left">
+                    <h1>🏹 Coach Dashboard</h1>
+                    <nav class="main-nav">
+                        <a href="index.html">Home</a>
+                        <a href="dashboard.html" class="active">Dashboard</a>
+                        <a href="archer-list.html">Archers</a>
+                        <a href="profile.html">Profile</a>
+                    </nav>
+                </div>
+                <div class="user-info">
+                    <span>Hello, {{ userInfo.firstName || userInfo.email }}!</span>
+                    <span class="badge badge-coach">{{ userInfo.role }}</span>
+                    <button @click="logout" class="logout-btn">Logout</button>
+                </div>
+            </div>
+            
+            <div class="content">
+                <div class="dashboard-section">
+                    <h2>Welcome back, Coach {{ userInfo.lastName || userInfo.email }}!</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ totalMembers }}</div>
+                            <div class="stat-label">Total Archers</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ activeMembers }}</div>
+                            <div class="stat-label">Active This Month</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ upcomingSessions }}</div>
+                            <div class="stat-label">Upcoming Sessions</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ avgProgress }}</div>
+                            <div class="stat-label">Avg Progress Score</div>
+                        </div>
+                    </div>
+
+                    <div class="recent-activity">
+                        <h3>Recent Activity</h3>
+                        <div class="activity-list">
+                            <div v-for="activity in recentActivities" :key="activity.id" class="activity-item">
+                                <div class="activity-icon">📊</div>
+                                <div class="activity-content">
+                                    <div class="activity-title">{{ activity.title }}</div>
+                                    <div class="activity-time">{{ activity.time }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="quick-actions">
+                        <h3>Quick Actions</h3>
+                        <div class="actions-grid">
+                            <a href="archer-list.html" class="action-btn">
+                                <div class="action-icon">👥</div>
+                                <div class="action-label">View All Archers</div>
+                            </a>
+                            <button class="action-btn" @click="scheduleSession">
+                                <div class="action-icon">📅</div>
+                                <div class="action-label">Schedule Session</div>
+                            </button>
+                            <button class="action-btn" @click="recordProgress">
+                                <div class="action-icon">📈</div>
+                                <div class="action-label">Record Progress</div>
+                            </button>
+                            <a href="profile.html" class="action-btn">
+                                <div class="action-icon">👤</div>
+                                <div class="action-label">Update Profile</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/coach-dashboard.js"></script>
+</body>
+</html>

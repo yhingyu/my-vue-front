@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archer Dashboard - My Archery Club</title>
+    <script src="https://unpkg.com/vue@3.0.2"></script>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <div id="app">
+        <div v-if="isLoading" class="loading">
+            Loading...
+        </div>
+        
+        <div v-else-if="isAuthenticated && userInfo">
+            <div class="header">
+                <div class="header-left">
+                    <h1>🏹 My Archery Dashboard</h1>
+                    <nav class="main-nav">
+                        <a href="index.html">Home</a>
+                        <a href="dashboard.html" class="active">Dashboard</a>
+                        <a href="profile.html">Profile</a>
+                    </nav>
+                </div>
+                <div class="user-info">
+                    <span>Hello, {{ profile?.firstName || userInfo.email }}!</span>
+                    <span class="badge badge-archer">{{ userInfo.role }}</span>
+                    <button @click="logout" class="logout-btn">Logout</button>
+                </div>
+            </div>
+            
+            <div class="content">
+                <div class="dashboard-section">
+                    <h2>Welcome back, {{ profile?.firstName || 'Archer' }}!</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ memberSince }}</div>
+                            <div class="stat-label">Member Since</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ practiceHours }}</div>
+                            <div class="stat-label">Practice Hours</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ currentScore }}</div>
+                            <div class="stat-label">Best Score</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ upcomingSessions }}</div>
+                            <div class="stat-label">Upcoming Sessions</div>
+                        </div>
+                    </div>
+
+                    <div class="quick-actions">
+                        <h3>Quick Actions</h3>
+                        <div class="actions-grid">
+                            <a href="profile.html" class="action-btn">
+                                <div class="action-icon">👤</div>
+                                <div class="action-label">Update Profile</div>
+                            </a>
+                            <button class="action-btn" @click="viewProgress">
+                                <div class="action-icon">📈</div>
+                                <div class="action-label">View Progress</div>
+                            </button>
+                            <button class="action-btn" @click="viewSchedule">
+                                <div class="action-icon">📅</div>
+                                <div class="action-label">View Schedule</div>
+                            </button>
+                            <button class="action-btn" @click="recordPractice">
+                                <div class="action-icon">🎯</div>
+                                <div class="action-label">Record Practice</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="recent-achievements">
+                        <h3>Recent Achievements</h3>
+                        <div class="achievements-list">
+                            <div v-for="achievement in recentAchievements" :key="achievement.id" class="achievement-item">
+                                <div class="achievement-icon">🏆</div>
+                                <div class="achievement-content">
+                                    <div class="achievement-title">{{ achievement.title }}</div>
+                                    <div class="achievement-date">{{ achievement.date }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="progress-summary">
+                        <h3>Progress Summary</h3>
+                        <div class="progress-container">
+                            <div class="progress-card">
+                                <h4>Current Skill Level</h4>
+                                <div class="skill-level">{{ skillLevel }}</div>
+                            </div>
+                            <div class="progress-card">
+                                <h4>Total Practice Sessions</h4>
+                                <div class="session-count">{{ totalSessions }}</div>
+                            </div>
+                            <div class="progress-card">
+                                <h4>Average Score</h4>
+                                <div class="avg-score">{{ averageScore }}/10</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/archer-dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Authentication</title>
+    <script src="https://unpkg.com/vue@3.0.2"></script>
+</head>
+<body>
+    <div id="debugApp">
+        <h1>Authentication Debug</h1>
+        
+        <div>
+            <h2>LocalStorage Contents:</h2>
+            <p><strong>auth_token:</strong> {{ localStorage.auth_token || 'Not found' }}</p>
+            <p><strong>user_info:</strong> {{ localStorage.user_info || 'Not found' }}</p>
+        </div>
+        
+        <div>
+            <h2>Test Login</h2>
+            <button @click="testLogin" :disabled="isLoading">Test Login (archer1@archeryclub.com)</button>
+            <p v-if="loginResult">{{ loginResult }}</p>
+        </div>
+        
+        <div>
+            <h2>Test Profile API</h2>
+            <button @click="testProfile" :disabled="isLoading || !localStorage.auth_token">Test Profile</button>
+            <p v-if="profileResult">{{ profileResult }}</p>
+        </div>
+        
+        <div>
+            <h2>Clear Storage</h2>
+            <button @click="clearStorage">Clear All</button>
+        </div>
+        
+        <div v-if="error" style="color: red;">
+            <h3>Error:</h3>
+            <p>{{ error }}</p>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    localStorage: {},
+                    isLoading: false,
+                    loginResult: '',
+                    profileResult: '',
+                    error: ''
+                };
+            },
+            
+            mounted() {
+                this.updateLocalStorage();
+            },
+            
+            methods: {
+                updateLocalStorage() {
+                    this.localStorage = {
+                        auth_token: localStorage.getItem('auth_token'),
+                        user_info: localStorage.getItem('user_info')
+                    };
+                },
+                
+                async testLogin() {
+                    this.isLoading = true;
+                    this.error = '';
+                    this.loginResult = '';
+                    
+                    try {
+                        const response = await fetch('http://localhost:3000/auth/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                email: 'archer1@archeryclub.com',
+                                password: 'archer123'
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (response.ok) {
+                            localStorage.setItem('auth_token', data.access_token);
+                            localStorage.setItem('user_info', JSON.stringify(data.user));
+                            this.loginResult = 'Login successful! Token and user info saved.';
+                            this.updateLocalStorage();
+                        } else {
+                            this.error = 'Login failed: ' + (data.message || response.statusText);
+                        }
+                    } catch (error) {
+                        this.error = 'Network error: ' + error.message;
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                
+                async testProfile() {
+                    this.isLoading = true;
+                    this.error = '';
+                    this.profileResult = '';
+                    
+                    try {
+                        const token = localStorage.getItem('auth_token');
+                        const response = await fetch('http://localhost:3000/auth/profile', {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (response.ok) {
+                            this.profileResult = 'Profile API success: ' + JSON.stringify(data, null, 2);
+                        } else {
+                            this.error = 'Profile API failed: ' + JSON.stringify(data, null, 2);
+                        }
+                    } catch (error) {
+                        this.error = 'Network error: ' + error.message;
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                
+                clearStorage() {
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('user_info');
+                    this.updateLocalStorage();
+                    this.loginResult = '';
+                    this.profileResult = '';
+                    this.error = '';
+                }
+            }
+        }).mount('#debugApp');
+    </script>
+</body>
+</html>

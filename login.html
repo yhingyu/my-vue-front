@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - My Archery Club</title>
+    <script src="https://unpkg.com/vue@3.0.2"></script>
+    <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+    <div id="loginApp">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>🏹 My Archery Club</h1>
+                <p>Please sign in to continue</p>
+            </div>
+            
+            <form @submit.prevent="handleLogin">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input
+                        type="email"
+                        id="email"
+                        v-model="credentials.email"
+                        required
+                        :disabled="isLoading"
+                        placeholder="admin@archeryclub.com"
+                    />
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input
+                        type="password"
+                        id="password"
+                        v-model="credentials.password"
+                        required
+                        :disabled="isLoading"
+                        placeholder="Enter your password"
+                        minlength="6"
+                    />
+                </div>
+                
+                <button type="submit" class="login-button" :disabled="isLoading">
+                    <span v-if="isLoading" class="loading"></span>
+                    <span v-else>Sign In</span>
+                </button>
+                
+                <div v-if="errorMessage" class="error-message">
+                    {{ errorMessage }}
+                </div>
+            </form>
+            
+            <!-- Debug section -->
+            <div style="margin-top: 20px; padding: 10px; border: 1px dashed #ccc; background: #f9f9f9;">
+                <h4>Debug Tools</h4>
+                <button type="button" @click="debugLocalStorage" style="margin: 5px; padding: 5px 10px;">Check LocalStorage</button>
+                <button type="button" @click="clearStorage" style="margin: 5px; padding: 5px 10px;">Clear Storage</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    credentials: {
+                        email: '',
+                        password: ''
+                    },
+                    isLoading: false,
+                    errorMessage: ''
+                };
+            },
+            
+            async mounted() {
+                // Check if user is already logged in and validate token
+                const token = localStorage.getItem('auth_token');
+                const userInfo = localStorage.getItem('user_info');
+                
+                console.log('Login page mounted - Token exists:', !!token, 'UserInfo exists:', !!userInfo);
+                
+                // Check for inconsistent state: userInfo without token
+                if (!token && userInfo) {
+                    console.log('INCONSISTENT STATE: UserInfo exists but no token - clearing userInfo');
+                    localStorage.removeItem('user_info');
+                    console.log('UserInfo cleared - state is now consistent');
+                }
+                
+                if (token) {
+                    console.log('Found existing token, validating...');
+                    await this.validateTokenAndRedirect(token);
+                } else {
+                    console.log('No token found - user needs to login');
+                }
+            },
+            
+            methods: {
+                async handleLogin() {
+                    console.log('=== LOGIN ATTEMPT STARTED ===');
+                    console.log('Credentials:', { email: this.credentials.email, password: '***' });
+                    
+                    this.isLoading = true;
+                    this.errorMessage = '';
+                    
+                    try {
+                        console.log('Making login request to:', 'http://localhost:3000/auth/login');
+                        
+                        const response = await fetch('http://localhost:3000/auth/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(this.credentials)
+                        });
+                        
+                        console.log('Login response status:', response.status);
+                        console.log('Login response ok:', response.ok);
+                        
+                        const data = await response.json();
+                        console.log('Login response data:', data);
+                        
+                        if (response.ok) {
+                            console.log('Login successful!');
+                            console.log('Access token received:', !!data.access_token);
+                            console.log('User data received:', data.user);
+                            
+                            // Store token and user info
+                            localStorage.setItem('auth_token', data.access_token);
+                            localStorage.setItem('user_info', JSON.stringify(data.user));
+                            
+                            console.log('Token and user info stored in localStorage');
+                            console.log('Redirecting to dashboard for role:', data.user?.role || 'unknown');
+                            
+                            // Redirect directly to appropriate dashboard based on role
+                            this.redirectToDashboard(data.user?.role);
+                        } else {
+                            console.log('Login failed with status:', response.status);
+                            console.log('Error message:', data.message);
+                            // Handle error response
+                            this.errorMessage = data.message || 'Login failed. Please check your credentials.';
+                        }
+                    } catch (error) {
+                        console.error('Network error during login:', error);
+                        this.errorMessage = 'Connection error. Please make sure the API server is running.';
+                    } finally {
+                        this.isLoading = false;
+                        console.log('=== LOGIN ATTEMPT FINISHED ===');
+                    }
+                },
+                
+                async validateTokenAndRedirect(token) {
+                    console.log('=== TOKEN VALIDATION STARTED ===');
+                    console.log('Validating token:', token.substring(0, 20) + '...');
+                    
+                    try {
+                        console.log('Making profile request to validate token...');
+                        
+                        const response = await fetch('http://localhost:3000/auth/profile', {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        console.log('Token validation response status:', response.status);
+                        console.log('Token validation response ok:', response.ok);
+
+                        if (response.ok) {
+                            const apiResponse = await response.json();
+                            const userData = apiResponse.user || apiResponse;
+                            console.log('Token is valid! User data:', userData);
+                            console.log('Auto-redirecting to dashboard for role:', userData?.role || 'unknown');
+                            
+                            // Token is valid, redirect to appropriate dashboard
+                            this.redirectToDashboard(userData?.role);
+                        } else {
+                            console.log('Token is invalid or expired');
+                            console.log('Clearing stored authentication data');
+                            
+                            // Token is invalid, clear it
+                            localStorage.removeItem('auth_token');
+                            localStorage.removeItem('user_info');
+                        }
+                    } catch (error) {
+                        console.error('Network error during token validation:', error);
+                        console.log('Keeping token due to network error - user can still try to login');
+                        // Network error - don't clear token, user can still try to login
+                    }
+                    
+                    console.log('=== TOKEN VALIDATION FINISHED ===');
+                },
+                
+                redirectToMain() {
+                    window.location.href = 'index.html';
+                },
+                
+                redirectToDashboard(role) {
+                    console.log('=== DASHBOARD REDIRECT ===');
+                    console.log('Redirecting to unified dashboard for role:', role);
+                    window.location.href = 'dashboard.html';
+                },
+                
+                // Debug method to check localStorage
+                debugLocalStorage() {
+                    console.log('=== LOCAL STORAGE DEBUG ===');
+                    console.log('auth_token:', localStorage.getItem('auth_token'));
+                    console.log('user_info:', localStorage.getItem('user_info'));
+                    console.log('All localStorage keys:', Object.keys(localStorage));
+                    console.log('=== END DEBUG ===');
+                },
+                
+                // Clear localStorage for testing
+                clearStorage() {
+                    console.log('Clearing localStorage...');
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('user_info');
+                    console.log('LocalStorage cleared');
+                    this.debugLocalStorage();
+                }
+            }
+        }).mount('#loginApp');
+    </script>
+</body>
+</html>

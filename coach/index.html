@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coach Portal - My Archery Club</title>
+    <script src="https://unpkg.com/vue@3.0.2"></script>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <div id="app">
+        <div v-if="isLoading" class="loading">
+            Loading...
+        </div>
+        
+        <div v-else-if="isAuthenticated && userInfo">
+            <div class="header">
+                <div class="header-left">
+                    <h1>🏹 Coach Portal</h1>
+                    <nav class="main-nav">
+                        <a href="index.html" :class="{ active: currentPage === 'home' }">Home</a>
+                        <a href="dashboard.html">Dashboard</a>
+                        <a href="archer-list.html">Archers</a>
+                        <a href="profile.html">Profile</a>
+                    </nav>
+                </div>
+                <div class="user-info">
+                    <span>Hello, {{ userInfo.firstName || userInfo.email }}!</span>
+                    <span class="badge badge-coach">{{ userInfo.role }}</span>
+                    <button @click="logout" class="logout-btn">Logout</button>
+                </div>
+            </div>
+            
+            <div class="content">
+                <div class="welcome-section">
+                    <h2>Welcome to Coach Portal</h2>
+                    <p>Manage your archers and training sessions</p>
+                    
+                    <div class="quick-nav-grid">
+                        <a href="dashboard.html" class="nav-card">
+                            <div class="nav-icon">📊</div>
+                            <h3>Dashboard</h3>
+                            <p>View overview and statistics</p>
+                        </a>
+                        <a href="archer-list.html" class="nav-card">
+                            <div class="nav-icon">🏹</div>
+                            <h3>Manage Archers</h3>
+                            <p>View and manage your archers</p>
+                        </a>
+                        <a href="profile.html" class="nav-card">
+                            <div class="nav-icon">👤</div>
+                            <h3>Profile</h3>
+                            <p>Manage your coach profile</p>
+                        </a>
+                        <div class="nav-card" @click="goToSchedule">
+                            <div class="nav-icon">📅</div>
+                            <h3>Schedule</h3>
+                            <p>Manage training sessions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div v-else>
+            <div class="error-message">
+                <h2>Access Denied</h2>
+                <p>You need coach privileges to access this area.</p>
+                <a href="../index.html" class="btn btn-primary">Go to Login</a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/coach-index.js"></script>
+</body>
+</html>
