@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Debug - My Archery Club</title>
+    <script src="https://unpkg.com/vue@3.0.2"></script>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/dashboard-base.css">
+    <link rel="stylesheet" href="css/roles/admin.css">
+    <link rel="stylesheet" href="css/roles/coach.css">
+    <link rel="stylesheet" href="css/roles/archer.css">
+    <style>
+        .debug-info {
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .debug-success { background: #d4edda; border-color: #c3e6cb; }
+        .debug-error { background: #f8d7da; border-color: #f5c6cb; }
+        .debug-info h4 { margin: 0 0 10px 0; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Debug Information Panel -->
+        <div class="debug-info">
+            <h4>🔧 Dashboard Debug Info</h4>
+            <p><strong>Loading State:</strong> {{ isLoading }}</p>
+            <p><strong>Authenticated:</strong> {{ isAuthenticated }}</p>
+            <p><strong>User Info:</strong> {{ userInfo ? JSON.stringify(userInfo) : 'null' }}</p>
+            <p><strong>Active Tab:</strong> {{ activeTab }}</p>
+            <p><strong>Component Loader:</strong> {{ componentLoader ? 'Initialized' : 'Not initialized' }}</p>
+            <p><strong>Component Loading:</strong> {{ componentLoading }}</p>
+            <p><strong>Current Component Content Length:</strong> {{ currentComponentContent ? currentComponentContent.length : 0 }}</p>
+            <p><strong>Available Tabs:</strong> {{ availableTabs.length }} tabs</p>
+            <p><strong>Auth Token:</strong> {{ hasAuthToken ? 'Present' : 'Missing' }}</p>
+            <p><strong>Stored User Info:</strong> {{ hasStoredUserInfo ? 'Present' : 'Missing' }}</p>
+        </div>
+
+        <div v-if="isLoading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading your dashboard...</p>
+            <div class="debug-info debug-info">
+                <p>⏳ Dashboard is in loading state...</p>
+            </div>
+        </div>
+        
+        <div v-else-if="isAuthenticated" class="dashboard-container">
+            <div class="debug-info debug-success">
+                <p>✅ Authentication successful! Rendering dashboard...</p>
+            </div>
+
+            <!-- Header with role-specific styling -->
+            <header class="dashboard-header" :class="userInfo?.role ? 'header-' + userInfo.role.toLowerCase() : ''">
+                <div class="header-content">
+                    <div class="header-left">
+                        <h1>🏹 My Archery Club (DEBUG)</h1>
+                        <div class="role-badge" :class="userInfo?.role ? 'badge-' + userInfo.role.toLowerCase() : ''">
+                            <span class="role-icon">{{ getRoleIcon(userInfo?.role) }}</span>
+                            <span>{{ userInfo?.role || 'User' }} Dashboard</span>
+                        </div>
+                    </div>
+                    
+                    <div class="header-right">
+                        <div class="user-info">
+                            <span class="welcome">Welcome, {{ getUserDisplayName() }}!</span>
+                            <button @click="logout" class="logout-btn">Logout</button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Navigation Tabs -->
+            <nav class="dashboard-nav">
+                <button 
+                    v-for="tab in availableTabs" 
+                    :key="tab.id"
+                    @click="switchTab(tab.id)"
+                    :class="{ active: activeTab === tab.id }"
+                    class="nav-tab"
+                >
+                    {{ tab.icon }} {{ tab.label }}
+                </button>
+            </nav>
+
+            <!-- Main Content Area -->
+            <main class="dashboard-main">
+                <!-- Dynamic Component Loading -->
+                <div class="component-container">
+                    <div v-if="componentLoading" class="loading-spinner">
+                        <p>Loading {{ activeTabLabel }}...</p>
+                        <div class="debug-info">
+                            <p>⏳ Loading component for tab: {{ activeTab }}</p>
+                        </div>
+                    </div>
+                    <div v-else-if="currentComponentContent" v-html="currentComponentContent">
+                        <!-- Component content will be dynamically loaded here -->
+                    </div>
+                    <div v-else class="debug-info debug-error">
+                        <h4>⚠️ No Component Content</h4>
+                        <p>Active tab: {{ activeTab }}</p>
+                        <p>Component path would be: {{ componentLoader ? componentLoader.getComponentPath(activeTab, userInfo?.role) : 'Unknown' }}</p>
+                        <button @click="loadCurrentComponent()" class="btn btn-primary">🔄 Try Load Component</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+        
+        <!-- Unauthorized Access -->
+        <div v-else class="unauthorized">
+            <div class="debug-info debug-error">
+                <p>❌ Authentication failed or not logged in</p>
+            </div>
+            <h2>Access Denied</h2>
+            <p>You need to be logged in to access this dashboard.</p>
+            <button @click="redirectToLogin" class="btn btn-primary">Go to Login</button>
+        </div>
+    </div>
+
+    <!-- Load JavaScript modules in order -->
+    <script src="js/component-loader.js"></script>
+    <script>
+        // Debug version of DashboardCore with extra logging
+        const { createApp } = Vue;
+
+        const DebugDashboard = {
+            data() {
+                return {
+                    isLoading: true,
+                    isAuthenticated: false,
+                    userInfo: null,
+                    profile: null,
+                    activeTab: 'overview',
+                    
+                    // Component loading
+                    componentLoader: null,
+                    currentComponentContent: '',
+                    componentLoading: false,
+                    
+                    // Debug info
+                    hasAuthToken: false,
+                    hasStoredUserInfo: false,
+                    
+                    // Common dashboard data
+                    dashboardData: {
+                        memberSince: '2024'
+                    }
+                };
+            },
+            
+            computed: {
+                availableTabs() {
+                    const tabs = [
+                        { id: 'overview', label: 'Overview', icon: '📊' },
+                        { id: 'profile', label: 'Profile', icon: '👤' }
+                    ];
+                    
+                    // Add role-specific tabs
+                    if (this.isAdmin()) {
+                        tabs.splice(1, 0, 
+                            { id: 'users', label: 'Users', icon: '👥' },
+                            { id: 'assignments', label: 'Assignments', icon: '🔗' }
+                        );
+                    }
+                    
+                    if (this.isCoach()) {
+                        tabs.splice(-1, 0, 
+                            { id: 'archers', label: 'My Archers', icon: '🏹' }
+                        );
+                    }
+                    
+                    if (this.isArcher()) {
+                        tabs.splice(-1, 0, 
+                            { id: 'performance', label: 'Performance', icon: '🎯' }
+                        );
+                    }
+                    
+                    if (this.isCoach() || this.isArcher()) {
+                        tabs.splice(-1, 0, { id: 'sessions', label: 'Sessions', icon: '📅' });
+                    }
+                    
+                    return tabs;
+                },
+
+                activeTabLabel() {
+                    const activeTabInfo = this.availableTabs.find(tab => tab.id === this.activeTab);
+                    return activeTabInfo ? activeTabInfo.label : 'Loading';
+                }
+            },
+            
+            async mounted() {
+                console.log('🔧 DEBUG: Dashboard mounting...');
+                
+                // Initialize component loader
+                if (window.ComponentLoader) {
+                    this.componentLoader = new ComponentLoader();
+                    console.log('✅ DEBUG: ComponentLoader initialized');
+                } else {
+                    console.error('❌ DEBUG: ComponentLoader not available');
+                }
+                
+                await this.checkAuth();
+                console.log('🔧 DEBUG: Auth check completed, authenticated:', this.isAuthenticated);
+                
+                if (this.isAuthenticated) {
+                    console.log('🔧 DEBUG: Loading dashboard data...');
+                    await this.loadProfile();
+                    await this.loadDashboardData();
+                    
+                    if (this.componentLoader && this.userInfo) {
+                        console.log('🔧 DEBUG: Preloading components for role:', this.userInfo.role);
+                        try {
+                            await this.componentLoader.preloadComponents(this.userInfo.role);
+                            console.log('✅ DEBUG: Components preloaded');
+                        } catch (error) {
+                            console.error('❌ DEBUG: Component preload failed:', error);
+                        }
+                        
+                        console.log('🔧 DEBUG: Loading initial component...');
+                        await this.loadCurrentComponent();
+                    }
+                }
+                
+                console.log('🔧 DEBUG: Dashboard mount complete');
+            },
+            
+            methods: {
+                async checkAuth() {
+                    console.log('🔧 DEBUG: Checking authentication...');
+                    
+                    const token = localStorage.getItem('auth_token');
+                    const userInfoStr = localStorage.getItem('user_info');
+                    
+                    this.hasAuthToken = !!token;
+                    this.hasStoredUserInfo = !!userInfoStr;
+                    
+                    console.log('🔧 DEBUG: Token exists:', this.hasAuthToken);
+                    console.log('🔧 DEBUG: Stored user info exists:', this.hasStoredUserInfo);
+                    
+                    if (!token) {
+                        console.log('🔧 DEBUG: No auth token, redirecting to login...');
+                        this.isLoading = false;
+                        this.isAuthenticated = false;
+                        return;
+                    }
+                    
+                    if (userInfoStr) {
+                        try {
+                            this.userInfo = JSON.parse(userInfoStr);
+                            console.log('🔧 DEBUG: User info loaded:', this.userInfo);
+                            this.isAuthenticated = true;
+                        } catch (error) {
+                            console.error('❌ DEBUG: Failed to parse user info:', error);
+                            this.isAuthenticated = false;
+                        }
+                    }
+                    
+                    this.isLoading = false;
+                },
+
+                async loadProfile() {
+                    console.log('🔧 DEBUG: Loading profile...');
+                    // Mock profile loading for debug
+                    this.profile = this.userInfo;
+                },
+
+                async loadDashboardData() {
+                    console.log('🔧 DEBUG: Loading dashboard data...');
+                    // Mock dashboard data loading for debug
+                    this.dashboardData = {
+                        memberSince: '2024',
+                        totalUsers: 25,
+                        totalCoaches: 5,
+                        totalArchers: 20
+                    };
+                },
+
+                async switchTab(tabId) {
+                    console.log('🔧 DEBUG: Switching to tab:', tabId);
+                    this.activeTab = tabId;
+                    await this.loadCurrentComponent();
+                },
+
+                async loadCurrentComponent() {
+                    if (!this.componentLoader || !this.userInfo) {
+                        console.warn('⚠️ DEBUG: Cannot load component - missing componentLoader or userInfo');
+                        return;
+                    }
+                    
+                    console.log('🔧 DEBUG: Loading component for tab:', this.activeTab);
+                    this.componentLoading = true;
+                    
+                    try {
+                        const componentPath = this.componentLoader.getComponentPath(this.activeTab, this.userInfo.role);
+                        console.log('🔧 DEBUG: Component path:', componentPath);
+                        
+                        const componentHtml = await this.componentLoader.loadComponent(componentPath);
+                        console.log('🔧 DEBUG: Component loaded, length:', componentHtml.length);
+                        
+                        this.currentComponentContent = componentHtml;
+                    } catch (error) {
+                        console.error('❌ DEBUG: Failed to load component:', error);
+                        this.currentComponentContent = `
+                            <div class="component-error debug-info debug-error">
+                                <h3>Component Error</h3>
+                                <p>Failed to load ${this.activeTabLabel} component.</p>
+                                <p>Error: ${error.message}</p>
+                                <button @click="loadCurrentComponent()" class="btn btn-secondary">🔄 Retry</button>
+                            </div>
+                        `;
+                    } finally {
+                        this.componentLoading = false;
+                    }
+                },
+
+                // Role checking methods
+                isAdmin() {
+                    return this.userInfo?.role === 'ADMIN';
+                },
+
+                isCoach() {
+                    return this.userInfo?.role === 'COACH';
+                },
+
+                isArcher() {
+                    return this.userInfo?.role === 'ARCHER';
+                },
+
+                // Utility methods
+                getRoleIcon(role) {
+                    const icons = {
+                        'ADMIN': '👑',
+                        'COACH': '🏆',
+                        'ARCHER': '🏹'
+                    };
+                    return icons[role] || '👤';
+                },
+
+                getUserDisplayName() {
+                    if (this.userInfo?.profile?.firstName && this.userInfo?.profile?.lastName) {
+                        return `${this.userInfo.profile.firstName} ${this.userInfo.profile.lastName}`;
+                    }
+                    return this.userInfo?.email || 'User';
+                },
+
+                logout() {
+                    console.log('🔧 DEBUG: Logging out...');
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('user_info');
+                    window.location.href = '/login.html';
+                },
+
+                redirectToLogin() {
+                    console.log('🔧 DEBUG: Redirecting to login...');
+                    window.location.href = '/login.html';
+                }
+            }
+        };
+
+        // Create and mount the Vue application
+        createApp(DebugDashboard).mount('#app');
+    </script>
+</body>
+</html>

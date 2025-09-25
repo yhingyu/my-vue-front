@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Login - My Archery Club</title>
+    <script src="https://unpkg.com/vue@3.0.2"></script>
+    <link rel="stylesheet" href="css/login.css">
+    <style>
+        .demo-credentials {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .demo-credentials h3 {
+            margin: 0 0 10px 0;
+            color: #1976d2;
+        }
+        .credential-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid #ccc;
+        }
+        .credential-option:last-child {
+            border-bottom: none;
+        }
+        .use-btn {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .use-btn:hover {
+            background: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div id="loginApp">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>🏹 My Archery Club (TEST)</h1>
+                <p>Demo login for component testing</p>
+            </div>
+            
+            <!-- Demo Credentials Panel -->
+            <div class="demo-credentials">
+                <h3>🧪 Test Credentials</h3>
+                <p><small>Click "Use" to auto-fill credentials for testing</small></p>
+                
+                <div class="credential-option">
+                    <span><strong>Admin:</strong> admin@test.com / admin123</span>
+                    <button @click="useCredentials('admin@test.com', 'admin123', 'ADMIN')" class="use-btn">Use</button>
+                </div>
+                
+                <div class="credential-option">
+                    <span><strong>Coach:</strong> coach@test.com / coach123</span>
+                    <button @click="useCredentials('coach@test.com', 'coach123', 'COACH')" class="use-btn">Use</button>
+                </div>
+                
+                <div class="credential-option">
+                    <span><strong>Archer:</strong> archer@test.com / archer123</span>
+                    <button @click="useCredentials('archer@test.com', 'archer123', 'ARCHER')" class="use-btn">Use</button>
+                </div>
+            </div>
+            
+            <form @submit.prevent="handleTestLogin">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input
+                        type="email"
+                        id="email"
+                        v-model="credentials.email"
+                        required
+                        :disabled="isLoading"
+                        placeholder="Use test credentials above"
+                    />
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input
+                        type="password"
+                        id="password"
+                        v-model="credentials.password"
+                        required
+                        :disabled="isLoading"
+                        placeholder="Use test credentials above"
+                        minlength="6"
+                    />
+                </div>
+                
+                <button type="submit" class="login-button" :disabled="isLoading">
+                    <span v-if="isLoading" class="loading">🔄</span>
+                    <span v-else>🚀 Test Login (No Backend Required)</span>
+                </button>
+                
+                <div v-if="errorMessage" class="error-message">
+                    {{ errorMessage }}
+                </div>
+                
+                <div v-if="successMessage" class="success-message" style="color: green; text-align: center; margin: 10px 0;">
+                    {{ successMessage }}
+                </div>
+            </form>
+            
+            <div class="login-footer">
+                <p><small>🔧 This is a test login page for component development</small></p>
+                <button @click="clearStorage" style="background: #ff5722; color: white; border: none; padding: 5px 10px; border-radius: 3px;">
+                    🗑️ Clear Storage
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    credentials: {
+                        email: '',
+                        password: ''
+                    },
+                    selectedRole: '',
+                    isLoading: false,
+                    errorMessage: '',
+                    successMessage: ''
+                };
+            },
+            
+            methods: {
+                useCredentials(email, password, role) {
+                    this.credentials.email = email;
+                    this.credentials.password = password;
+                    this.selectedRole = role;
+                    this.errorMessage = '';
+                    console.log(`Using ${role} credentials:`, { email, role });
+                },
+                
+                async handleTestLogin() {
+                    this.isLoading = true;
+                    this.errorMessage = '';
+                    this.successMessage = '';
+                    
+                    console.log('🧪 TEST LOGIN STARTED');
+                    console.log('Credentials:', this.credentials);
+                    
+                    try {
+                        // Simulate login validation
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        
+                        // Create fake user data based on email
+                        let role = 'ARCHER';
+                        let firstName = 'Test';
+                        let lastName = 'User';
+                        
+                        if (this.credentials.email.includes('admin')) {
+                            role = 'ADMIN';
+                            firstName = 'Admin';
+                            lastName = 'User';
+                        } else if (this.credentials.email.includes('coach')) {
+                            role = 'COACH';
+                            firstName = 'Coach';
+                            lastName = 'User';
+                        } else if (this.credentials.email.includes('archer')) {
+                            role = 'ARCHER';
+                            firstName = 'Archer';
+                            lastName = 'User';
+                        }
+                        
+                        // Create fake JWT token
+                        const fakeToken = `fake-jwt-token-${Date.now()}-${role.toLowerCase()}`;
+                        
+                        // Create fake user info
+                        const fakeUserInfo = {
+                            id: Math.floor(Math.random() * 1000),
+                            email: this.credentials.email,
+                            role: role,
+                            isActive: true,
+                            created_at: new Date().toISOString(),
+                            profile: {
+                                firstName: firstName,
+                                lastName: lastName,
+                                phone: '+1234567890',
+                                dateOfBirth: '1990-01-01',
+                                bowType: 'Recurve',
+                                drawWeight: 25,
+                                experienceLevel: 'Intermediate',
+                                preferredDistance: '70m'
+                            }
+                        };
+                        
+                        // Store in localStorage
+                        localStorage.setItem('auth_token', fakeToken);
+                        localStorage.setItem('user_info', JSON.stringify(fakeUserInfo));
+                        
+                        console.log('✅ TEST LOGIN SUCCESS');
+                        console.log('Fake token stored:', fakeToken);
+                        console.log('Fake user info stored:', fakeUserInfo);
+                        
+                        this.successMessage = `✅ Logged in as ${role}! Redirecting...`;
+                        
+                        // Redirect to dashboard after short delay
+                        setTimeout(() => {
+                            window.location.href = 'dashboard.html';
+                        }, 1500);
+                        
+                    } catch (error) {
+                        console.error('❌ TEST LOGIN FAILED:', error);
+                        this.errorMessage = 'Test login failed: ' + error.message;
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                
+                clearStorage() {
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('user_info');
+                    console.log('🗑️ Storage cleared');
+                    this.successMessage = '🗑️ Storage cleared!';
+                    setTimeout(() => {
+                        this.successMessage = '';
+                    }, 2000);
+                }
+            }
+        }).mount('#loginApp');
+    </script>
+</body>
+</html>

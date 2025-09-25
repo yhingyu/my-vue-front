@@ -1,0 +1,18 @@
+<!-- Overview Tab -->
+<div v-if="activeTab === 'overview'" class="tab-content">
+    <h2>Dashboard Overview</h2>
+    <div class="overview-stats">
+        <div class="stat-card" v-if="isAdmin()">
+            <h3>{{ totalUsers }}</h3>
+            <p>Total Users</p>
+        </div>
+        <div class="stat-card" v-if="isAdmin()">
+            <h3>{{ totalCoaches }}</h3>
+            <p>Active Coaches</p>
+        </div>
+        <div class="stat-card" v-if="isAdmin()">
+            <h3>{{ totalArchers }}</h3>
+            <p>Active Archers</p>
+        </div>
+    </div>
+</div>

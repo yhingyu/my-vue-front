@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - My Archery Club</title>
+    <script src="https://unpkg.com/vue@3.0.2"></script>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/dashboard-base.css">
+    <link rel="stylesheet" href="css/roles/admin.css">
+    <link rel="stylesheet" href="css/roles/coach.css">
+    <link rel="stylesheet" href="css/roles/archer.css">
+</head>
+<body>
+    <div id="app">
+        <div v-if="isLoading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading your dashboard...</p>
+        </div>
+        
+        <div v-else-if="isAuthenticated" class="dashboard-container">
+            <!-- Header with role-specific styling -->
+            <header class="dashboard-header" :class="userInfo?.role ? 'header-' + userInfo.role.toLowerCase() : ''">
+                <div class="header-content">
+                    <div class="header-left">
+                        <h1>🏹 My Archery Club</h1>
+                        <div class="role-badge" :class="userInfo?.role ? 'badge-' + userInfo.role.toLowerCase() : ''">
+                            <span class="role-icon">{{ getRoleIcon(userInfo?.role) }}</span>
+                            <span>{{ userInfo?.role || 'User' }} Dashboard</span>
+                        </div>
+                    </div>
+                    
+                    <div class="header-right">
+                        <div class="user-info">
+                            <span class="welcome">Welcome, {{ getUserDisplayName() }}!</span>
+                            <button @click="logout" class="logout-btn">Logout</button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Navigation Tabs -->
+            <nav class="dashboard-nav">
+                <button 
+                    v-for="tab in availableTabs" 
+                    :key="tab.id"
+                    @click="activeTab = tab.id"
+                    :class="{ active: activeTab === tab.id }"
+                    class="nav-tab"
+                >
+                    {{ tab.icon }} {{ tab.label }}
+                </button>
+            </nav>
+
+            <!-- Main Content Area -->
+            <main class="dashboard-main">
+                <!-- Dynamic Component Loading -->
+                <div class="component-container" v-html="currentComponentContent">
+                    <!-- Component content will be dynamically loaded here -->
+                </div>
+
+                <!-- All tab content is now dynamically loaded through components -->
+                    <div class="users-management-header">
+                        <h2>User Management</h2>
+                        <div class="header-actions">
+                            <button @click="showCreateUserForm = true" class="btn btn-primary">
+                                ➕ Create New User
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Create User Form Modal -->
+                    <div v-if="showCreateUserForm" class="modal-overlay" @click.self="showCreateUserForm = false">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Create New User</h3>
+                                <button @click="showCreateUserForm = false" class="btn-close">×</button>
+                            </div>
+                            <form @submit.prevent="createUser" class="user-form">
+                                <div class="form-group">
+                                    <label for="newUserEmail">Email:</label>
+                                    <input 
+                                        type="email" 
+                                        id="newUserEmail" 
+                                        v-model="newUser.email" 
+                                        required 
+                                        class="form-input"
+                                    >
+                                </div>
+                                <div class="form-group">
+                                    <label for="newUserPassword">Password:</label>
+                                    <input 
+                                        type="password" 
+                                        id="newUserPassword" 
+                                        v-model="newUser.password" 
+                                        required 
+                                        minlength="6"
+                                        class="form-input"
+                                    >
+                                </div>
+                                <div class="form-group">
+                                    <label for="newUserRole">Role:</label>
+                                    <select id="newUserRole" v-model="newUser.role" required class="form-select">
+                                        <option value="">Select Role</option>
+                                        <option value="ADMIN">Admin</option>
+                                        <option value="COACH">Coach</option>
+                                        <option value="ARCHER">Archer</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" v-model="newUser.isActive">
+                                        <span class="checkbox-text">Active User</span>
+                                    </label>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" @click="showCreateUserForm = false" class="btn btn-secondary">Cancel</button>
+                                    <button type="submit" :disabled="isCreatingUser" class="btn btn-primary">
+                                        {{ isCreatingUser ? 'Creating...' : 'Create User' }}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Edit User Form Modal -->
+                    <div v-if="showEditUserForm" class="modal-overlay" @click.self="showEditUserForm = false">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Edit User</h3>
+                                <button @click="showEditUserForm = false" class="btn-close">×</button>
+                            </div>
+                            <form @submit.prevent="updateUser" class="user-form">
+                                <div class="form-group">
+                                    <label for="editUserEmail">Email:</label>
+                                    <input 
+                                        type="email" 
+                                        id="editUserEmail" 
+                                        v-model="editingUser.email" 
+                                        required 
+                                        class="form-input"
+                                    >
+                                </div>
+                                <div class="form-group">
+                                    <label for="editUserPassword">Password (leave blank to keep current):</label>
+                                    <input 
+                                        type="password" 
+                                        id="editUserPassword" 
+                                        v-model="editingUser.password" 
+                                        class="form-input"
+                                        placeholder="Enter new password or leave blank"
+                                    >
+                                </div>
+                                <div class="form-group">
+                                    <label for="editUserRole">Role:</label>
+                                    <select id="editUserRole" v-model="editingUser.role" required class="form-select">
+                                        <option value="ADMIN">Admin</option>
+                                        <option value="COACH">Coach</option>
+                                        <option value="ARCHER">Archer</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" v-model="editingUser.isActive">
+                                        <span class="checkbox-text">Active User</span>
+                                    </label>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" @click="showEditUserForm = false" class="btn btn-secondary">Cancel</button>
+                                    <button type="submit" :disabled="isUpdatingUser" class="btn btn-primary">
+                                        {{ isUpdatingUser ? 'Updating...' : 'Update User' }}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- User Filters -->
+                    <div class="filters-section">
+                        <div class="filter-group">
+                            <label for="roleFilter">Filter by Role:</label>
+                            <select id="roleFilter" v-model="userFilters.role" @change="loadUsers" class="form-select">
+                                <option value="">All Roles</option>
+                                <option value="ADMIN">Admin</option>
+                                <option value="COACH">Coach</option>
+                                <option value="ARCHER">Archer</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" v-model="userFilters.includeInactive" @change="loadUsers">
+                                <span class="checkbox-text">Include Inactive Users</span>
+                            </label>
+                        </div>
+                        <div class="filter-actions">
+                            <button @click="loadUsers" class="btn btn-secondary">🔄 Refresh</button>
+                        </div>
+                    </div>
+
+                    <!-- Users Table -->
+                    <div class="users-table-section">
+                        <div v-if="usersLoading" class="loading-spinner">
+                            <p>Loading users...</p>
+                        </div>
+                        <div v-else-if="users.length === 0" class="no-data">
+                            <p>No users found with the current filters.</p>
+                        </div>
+                        <div v-else class="table-container">
+                            <table class="users-table">
+                                <thead>
+                                    <tr>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Profile Name</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="user in users" :key="user.id" :class="{ 'inactive-user': !user.isActive }">
+                                        <td>
+                                            <div class="user-email">
+                                                <strong>{{ user.email }}</strong>
+                                                <span v-if="!user.isActive" class="inactive-badge">INACTIVE</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="role-badge" :class="'role-' + user.role.toLowerCase()">
+                                                {{ getRoleIcon(user.role) }} {{ user.role }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="status-badge" :class="user.isActive ? 'status-active' : 'status-inactive'">
+                                                {{ user.isActive ? 'Active' : 'Inactive' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div v-if="user.profile" class="profile-info">
+                                                {{ user.profile.firstName || '' }} {{ user.profile.lastName || '' }}
+                                                <small v-if="!user.profile.firstName && !user.profile.lastName" class="text-muted">
+                                                    No profile name
+                                                </small>
+                                            </div>
+                                            <small v-else class="text-muted">No profile</small>
+                                        </td>
+                                        <td>
+                                            <small>{{ formatDate(user.created_at) }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button 
+                                                    @click="editUser(user)" 
+                                                    class="btn btn-sm btn-outline"
+                                                    title="Edit user"
+                                                >
+                                                    ✏️ Edit
+                                                </button>
+                                                <button 
+                                                    @click="toggleUserStatus(user)" 
+                                                    :class="user.isActive ? 'btn btn-sm btn-warning' : 'btn btn-sm btn-success'"
+                                                    :title="user.isActive ? 'Deactivate user' : 'Activate user'"
+                                                >
+                                                    {{ user.isActive ? '⏸️ Deactivate' : '▶️ Activate' }}
+                                                </button>
+                                                <button 
+                                                    @click="deleteUser(user)" 
+                                                    class="btn btn-sm btn-danger"
+                                                    title="Delete user"
+                                                    :disabled="user.id === userInfo.id"
+                                                >
+                                                    🗑️ Delete
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <h2 style="margin-top: 2rem; border-top: 1px solid #eee; padding-top: 2rem;">Coach Assignment Management</h2>
+                    
+                    <!-- Current Assignments Section (Assigned Archers) -->
+                    <div class="management-section">
+                        <h3>Current Assignments</h3>
+                        <div class="action-buttons">
+                            <button @click="loadAllAssignments" class="btn btn-primary">
+                                🔄 Refresh Assignments
+                            </button>
+                        </div>
+                        
+                        <div v-if="assignmentsLoading" class="loading-spinner">
+                            <p>Loading current assignments...</p>
+                        </div>
+                        <div v-else-if="currentAssignments.length === 0" class="no-data">
+                            <p>No current coach assignments found.</p>
+                        </div>
+                        <div v-else class="assignment-grid">
+                            <div 
+                                v-for="assignment in currentAssignments" 
+                                :key="assignment.id"
+                                class="assignment-card assigned"
+                            >
+                                <div class="archer-info">
+                                    <h4>{{ assignment.user?.firstName || 'Unknown' }} {{ assignment.user?.lastName || 'Archer' }}</h4>
+                                    <p class="archer-email">{{ assignment.user?.email }}</p>
+                                    <p v-if="assignment.coachAssignedDate" class="assignment-date">
+                                        Assigned: {{ formatDate(assignment.coachAssignedDate) }}
+                                    </p>
+                                    <p class="current-coach">
+                                        <strong>Coach:</strong> {{ getCoachName(assignment.coachId) }}
+                                    </p>
+                                </div>
+                                <div class="assignment-actions">
+                                    <select v-model="newCoachSelections[assignment.id]" class="coach-select">
+                                        <option value="">Change to...</option>
+                                        <option 
+                                            v-for="coach in availableCoaches" 
+                                            :key="coach.id" 
+                                            :value="coach.id"
+                                            :disabled="coach.id === assignment.coachId"
+                                        >
+                                            {{ getCoachDisplayName(coach) }}
+                                        </option>
+                                    </select>
+                                    <button 
+                                        @click="reassignCoach(assignment.id, newCoachSelections[assignment.id])"
+                                        :disabled="!newCoachSelections[assignment.id]"
+                                        class="btn btn-sm btn-warning"
+                                    >
+                                        Reassign
+                                    </button>
+                                    <button 
+                                        @click="removeCoachAssignment(assignment.id)"
+                                        class="btn btn-sm btn-danger"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Unassigned Archers Section -->
+                    <div class="management-section">
+                        <h3>Unassigned Archers</h3>
+                        <div class="action-buttons">
+                            <button @click="loadUnassignedArchers" class="btn btn-primary">
+                                🔄 Refresh List
+                            </button>
+                            <button @click="loadAvailableCoaches" class="btn btn-secondary">
+                                👥 Reload Coaches
+                            </button>
+                            <button @click="debugCoaches" class="btn btn-info">
+                                � Debug Coaches
+                            </button>
+                        </div>
+                        
+                        <div v-if="unassignedArchersLoading" class="loading-spinner">
+                            <p>Loading unassigned archers...</p>
+                        </div>
+                        <div v-else-if="unassignedArchers.length === 0" class="no-data">
+                            <p>All archers are currently assigned to coaches.</p>
+                        </div>
+                        <div v-else class="table-container">
+                            <table class="assignment-table">
+                                <thead>
+                                    <tr>
+                                        <th>Archer Name</th>
+                                        <th>Email</th>
+                                        <th>Date Joined</th>
+                                        <th>Assign Coach</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="archer in unassignedArchers" :key="archer.id">
+                                        <td>
+                                            <strong>
+                                                {{ getArcherName(archer) }}
+                                            </strong>
+                                        </td>
+                                        <td>{{ archer.user?.email || 'No email' }}</td>
+                                        <td>
+                                            <span v-if="archer.dateJoined">
+                                                {{ formatDate(archer.dateJoined) }}
+                                            </span>
+                                            <span v-else class="text-muted">Not specified</span>
+                                        </td>
+                                        <td>
+                                            <select 
+                                                v-model="selectedCoaches[archer.id]" 
+                                                class="form-select coach-dropdown"
+                                            >
+                                                <option value="">Select a coach...</option>
+                                                <option 
+                                                    v-for="coach in availableCoaches" 
+                                                    :key="coach.id" 
+                                                    :value="coach.id"
+                                                >
+                                                    {{ getCoachDisplayName(coach) }}
+                                                </option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <button 
+                                                @click="assignCoachToArcher(archer.id, selectedCoaches[archer.id])"
+                                                :disabled="!selectedCoaches[archer.id]"
+                                                class="btn btn-sm btn-success"
+                                                title="Save coach assignment"
+                                            >
+                                                💾 Save
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sessions Tab (Coach/Archer) -->
+                <div v-if="activeTab === 'sessions'" class="tab-content">
+                    <h2>{{ isCoach() ? 'Manage Sessions' : 'My Sessions' }}</h2>
+                    <div class="sessions-content">
+                        <p>{{ isCoach() ? 'Session management' : 'Session tracking' }} features coming soon...</p>
+                        <div class="placeholder-content">
+                            <div class="session-card" v-for="i in 3" :key="i">
+                                <div class="session-header">
+                                    <h4>Training Session {{ i }}</h4>
+                                    <span class="session-date">{{ getDateString(i) }}</span>
+                                </div>
+                                <div class="session-details">
+                                    <p><strong>Duration:</strong> 2 hours</p>
+                                    <p><strong>Focus:</strong> Accuracy training</p>
+                                    <p v-if="isArcher()"><strong>Score:</strong> 8.{{ i + 2 }}/10</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Archers Tab (Coach only) -->
+                <div v-if="activeTab === 'archers' && isCoach()" class="tab-content">
+                    <h2>Archer Management</h2>
+                    
+                    <!-- My Assigned Archers Section -->
+                    <div class="management-section">
+                        <h3>My Assigned Archers</h3>
+                        <div class="action-buttons">
+                            <button @click="loadAssignedArchers" class="btn btn-primary">
+                                🔄 Refresh My Archers
+                            </button>
+                        </div>
+                        
+                        <div v-if="archersLoading" class="loading-spinner">
+                            <p>Loading assigned archers...</p>
+                        </div>
+                        <div v-else-if="assignedArchers.length === 0" class="no-data">
+                            <p>No archers assigned to you yet.</p>
+                            <small>Assign yourself to available archers using the section below.</small>
+                        </div>
+                        <div v-else class="archers-grid">
+                            <div 
+                                v-for="archer in assignedArchers" 
+                                :key="archer.id"
+                                class="archer-card assigned"
+                            >
+                                <div class="archer-header">
+                                    <div class="archer-info">
+                                        <h4>{{ archer.user?.firstName || 'Unknown' }} {{ archer.user?.lastName || 'Archer' }}</h4>
+                                        <p class="archer-email">{{ archer.user?.email }}</p>
+                                    </div>
+                                    <span class="archer-badge assigned">ASSIGNED</span>
+                                </div>
+                                <div class="archer-details">
+                                    <p v-if="archer.dateJoined"><strong>Joined:</strong> {{ formatDate(archer.dateJoined) }}</p>
+                                    <p v-if="archer.coachAssignedDate"><strong>Assigned:</strong> {{ formatDate(archer.coachAssignedDate) }}</p>
+                                    <p v-if="archer.gender"><strong>Gender:</strong> {{ archer.gender }}</p>
+                                    <p v-if="archer.phone"><strong>Contact:</strong> {{ archer.phone }}</p>
+                                </div>
+                                <div class="archer-actions">
+                                    <button @click="viewArcherProfile(archer)" class="btn btn-sm btn-outline">
+                                        View Profile
+                                    </button>
+                                    <button @click="scheduleSessionWithArcher(archer)" class="btn btn-sm btn-primary">
+                                        Schedule Session
+                                    </button>
+                                    <button @click="removeMyArcherAssignment(archer.id)" class="btn btn-sm btn-danger">
+                                        Remove Assignment
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Available Archers Section -->
+                    <div class="management-section">
+                        <h3>Available Archers (Unassigned)</h3>
+                        <div class="action-buttons">
+                            <button @click="loadUnassignedArchers" class="btn btn-primary">
+                                🔄 Refresh List
+                            </button>
+                        </div>
+                        
+                        <div v-if="unassignedArchersLoading" class="loading-spinner">
+                            <p>Loading available archers...</p>
+                        </div>
+                        <div v-else-if="unassignedArchers.length === 0" class="no-data">
+                            <p>No unassigned archers available.</p>
+                            <small>All archers are currently assigned to coaches.</small>
+                        </div>
+                        <div v-else class="archers-grid">
+                            <div 
+                                v-for="archer in unassignedArchers" 
+                                :key="archer.id"
+                                class="archer-card available"
+                            >
+                                <div class="archer-header">
+                                    <div class="archer-info">
+                                        <h4>{{ archer.user?.firstName || 'Unknown' }} {{ archer.user?.lastName || 'Archer' }}</h4>
+                                        <p class="archer-email">{{ archer.user?.email }}</p>
+                                    </div>
+                                    <span class="archer-badge available">AVAILABLE</span>
+                                </div>
+                                <div class="archer-details">
+                                    <p v-if="archer.dateJoined"><strong>Joined:</strong> {{ formatDate(archer.dateJoined) }}</p>
+                                    <p v-if="archer.gender"><strong>Gender:</strong> {{ archer.gender }}</p>
+                                    <p v-if="archer.phone"><strong>Contact:</strong> {{ archer.phone }}</p>
+                                </div>
+                                <div class="archer-actions">
+                                    <button @click="viewArcherProfile(archer)" class="btn btn-sm btn-outline">
+                                        View Profile
+                                    </button>
+                                    <button @click="assignArcherToMe(archer.id)" class="btn btn-sm btn-success">
+                                        Assign to Me
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Tab -->
+                <div v-if="activeTab === 'profile'" class="tab-content">
+                    <h2>My Profile</h2>
+                    <div class="profile-content">
+                        <div class="profile-info">
+                            <div class="profile-avatar">
+                                <span class="avatar-placeholder">{{ getInitials() }}</span>
+                            </div>
+                            <div class="profile-details">
+                                <h3>{{ getUserDisplayName() }}</h3>
+                                <p class="profile-email">{{ userInfo.email }}</p>
+                                <div class="profile-role">
+                                    <span class="role-badge" :class="userInfo?.role ? 'badge-' + userInfo.role.toLowerCase() : ''">
+                                        {{ getRoleIcon(userInfo?.role) }} {{ userInfo?.role || 'User' }}
+                                    </span>
+                                </div>
+                                
+                                <div v-if="profile" class="profile-meta">
+                                    <p><strong>Member Since:</strong> {{ formatDate(profile.dateJoined) }}</p>
+                                    <p v-if="profile.firstName"><strong>Full Name:</strong> {{ profile.firstName }} {{ profile.lastName }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="profile-actions">
+                            <button @click="editProfile" class="action-btn">✏️ Edit Profile</button>
+                            <button @click="changePassword" class="action-btn">🔒 Change Password</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        
+        <!-- Unauthorized Access -->
+        <div v-else class="unauthorized">
+            <h2>Access Denied</h2>
+            <p>You need to be logged in to access this dashboard.</p>
+            <button @click="redirectToLogin" class="btn btn-primary">Go to Login</button>
+        </div>
+    </div>
+
+    <!-- Load JavaScript modules in order -->
+    <script src="js/dashboard-core.js"></script>
+    <script src="js/roles/admin.js"></script>
+    <script src="js/roles/coach.js"></script>
+    <script src="js/roles/archer.js"></script>
+    <script src="js/dashboard-main.js"></script></script>
+</body>
+</html>

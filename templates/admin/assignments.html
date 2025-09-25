@@ -1,0 +1,88 @@
+<!-- Assignments Tab (Admin only) -->
+<div v-if="activeTab === 'assignments' && isAdmin()" class="tab-content">
+    <h2>Coach-Archer Assignments</h2>
+    
+    <!-- Current Assignments Section -->
+    <div class="management-section">
+        <h3>Current Assignments</h3>
+        <button @click="loadAllAssignments" class="btn btn-primary">🔄 Refresh Assignments</button>
+        
+        <div v-if="assignmentsLoading" class="loading">Loading assignments...</div>
+        <div v-else-if="currentAssignments.length === 0" class="no-data">
+            <p>No current coach assignments found.</p>
+        </div>
+        <div v-else class="assignment-grid">
+            <div v-for="assignment in currentAssignments" :key="assignment.id" class="assignment-card">
+                <div class="archer-info">
+                    <h4>{{ getArcherName(assignment) }}</h4>
+                    <p class="archer-email">{{ assignment.user?.email }}</p>
+                    <p class="current-coach"><strong>Coach:</strong> {{ getCoachName(assignment.coachId) }}</p>
+                    <p v-if="assignment.coachAssignedDate" class="assignment-date">
+                        Assigned: {{ formatDate(assignment.coachAssignedDate) }}
+                    </p>
+                </div>
+                <div class="assignment-actions">
+                    <select v-model="newCoachSelections[assignment.id]" class="coach-select">
+                        <option value="">Change to...</option>
+                        <option v-for="coach in availableCoaches" :key="coach.id" :value="coach.id" :disabled="coach.id === assignment.coachId">
+                            {{ getCoachDisplayName(coach) }}
+                        </option>
+                    </select>
+                    <button @click="reassignCoach(assignment.id, newCoachSelections[assignment.id])" :disabled="!newCoachSelections[assignment.id]" class="btn btn-sm btn-warning">
+                        Reassign
+                    </button>
+                    <button @click="removeCoachAssignment(assignment.id)" class="btn btn-sm btn-danger">
+                        Remove
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unassigned Archers Section -->
+    <div class="management-section">
+        <h3>Unassigned Archers</h3>
+        <button @click="loadUnassignedArchers" class="btn btn-primary">🔄 Refresh List</button>
+        
+        <div v-if="unassignedArchersLoading" class="loading">Loading unassigned archers...</div>
+        <div v-else-if="unassignedArchers.length === 0" class="no-data">
+            <p>All archers are currently assigned to coaches.</p>
+        </div>
+        <div v-else class="table-container">
+            <table class="assignment-table">
+                <thead>
+                    <tr>
+                        <th>Archer Name</th>
+                        <th>Email</th>
+                        <th>Date Joined</th>
+                        <th>Assign Coach</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="archer in unassignedArchers" :key="archer.id">
+                        <td><strong>{{ getArcherName(archer) }}</strong></td>
+                        <td>{{ archer.user?.email || 'No email' }}</td>
+                        <td>
+                            <span v-if="archer.dateJoined">{{ formatDate(archer.dateJoined) }}</span>
+                            <span v-else class="text-muted">Not specified</span>
+                        </td>
+                        <td>
+                            <select v-model="selectedCoaches[archer.id]" class="form-select coach-dropdown">
+                                <option value="">Select a coach...</option>
+                                <option v-for="coach in availableCoaches" :key="coach.id" :value="coach.id">
+                                    {{ getCoachDisplayName(coach) }}
+                                </option>
+                            </select>
+                        </td>
+                        <td>
+                            <button @click="assignCoachToArcher(archer.id, selectedCoaches[archer.id])" :disabled="!selectedCoaches[archer.id]" class="btn btn-sm btn-success">
+                                💾 Assign
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

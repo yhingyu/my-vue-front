@@ -1,0 +1,135 @@
+<!-- Create User Modal -->
+<div v-if="showCreateForm" class="modal-overlay" @click.self="showCreateForm = false">
+    <div class="modal-content create-user-modal">
+        <h3>Create New User</h3>
+        <form @submit.prevent="createUser">
+            <!-- User Information -->
+            <div class="form-section">
+                <h4>User Account</h4>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="newUserEmail">Email: *</label>
+                        <input type="email" id="newUserEmail" v-model="newUser.email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newUserPassword">Password: *</label>
+                        <input type="password" id="newUserPassword" v-model="newUser.password" class="form-control" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="newUserRole">Role: *</label>
+                        <select id="newUserRole" v-model="newUser.role" class="form-control" required>
+                            <option value="ARCHER">Archer</option>
+                            <option value="COACH">Coach</option>
+                            <option value="ADMIN">Admin</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Information -->
+            <div class="form-section">
+                <h4>Profile Information (Optional)</h4>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="newUserFirstName">First Name:</label>
+                        <input type="text" id="newUserFirstName" v-model="newUser.firstName" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="newUserLastName">Last Name:</label>
+                        <input type="text" id="newUserLastName" v-model="newUser.lastName" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="newUserSuffix">Suffix:</label>
+                        <input type="text" id="newUserSuffix" v-model="newUser.suffix" class="form-control" placeholder="Jr., Sr., III, etc.">
+                    </div>
+                    <div class="form-group">
+                        <label for="newUserDob">Date of Birth:</label>
+                        <input type="date" id="newUserDob" v-model="newUser.dob" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="newUserGender">Gender:</label>
+                        <select id="newUserGender" v-model="newUser.gender" class="form-control">
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                            <option value="Prefer not to say">Prefer not to say</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="newUserPhone">Phone Number:</label>
+                        <input type="tel" id="newUserPhone" v-model="newUser.phone" class="form-control" placeholder="+1234567890">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contact Information -->
+            <div class="form-section">
+                <h4>Contact Information (Optional)</h4>
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="newUserAddress">Address:</label>
+                        <textarea id="newUserAddress" v-model="newUser.address" class="form-control" rows="2" placeholder="123 Main St, Apt 4B"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="newUserCity">City:</label>
+                        <input type="text" id="newUserCity" v-model="newUser.city" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="newUserPostalCode">Postal Code:</label>
+                        <input type="text" id="newUserPostalCode" v-model="newUser.postalCode" class="form-control">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Emergency Contact -->
+            <div class="form-section">
+                <h4>Emergency Contact (Optional)</h4>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="newUserEmergencyContact">Contact Name:</label>
+                        <input type="text" id="newUserEmergencyContact" v-model="newUser.emergencyContact" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="newUserContactRelation">Relation:</label>
+                        <select id="newUserContactRelation" v-model="newUser.contactRelation" class="form-control">
+                            <option value="">Select Relation</option>
+                            <option value="Parent">Parent</option>
+                            <option value="Mother">Mother</option>
+                            <option value="Father">Father</option>
+                            <option value="Guardian">Guardian</option>
+                            <option value="Sibling">Sibling</option>
+                            <option value="Spouse">Spouse</option>
+                            <option value="Friend">Friend</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="newUserContactPhone">Contact Phone:</label>
+                        <input type="tel" id="newUserContactPhone" v-model="newUser.contactPhone" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="newUserContactEmail">Contact Email:</label>
+                        <input type="email" id="newUserContactEmail" v-model="newUser.contactEmail" class="form-control">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Club Information -->
+            <div class="form-section">
+                <h4>Club Information (Optional)</h4>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="newUserDateJoined">Date Joined:</label>
+                        <input type="date" id="newUserDateJoined" v-model="newUser.dateJoined" class="form-control">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" @click="cancelCreateUser" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Create User</button>
+            </div>
+        </form>
+    </div>
+</div>

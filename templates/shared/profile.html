@@ -1,0 +1,327 @@
+<!-- Profile Tab -->
+<div v-if="activeTab === 'profile'" class="tab-content">
+    <h2>My Profile</h2>
+    
+    <!-- Profile loading state -->
+    <div v-if="profileLoading" class="loading">Loading profile...</div>
+    
+    <!-- Profile not found message -->
+    <div v-else-if="!profile && !showCreateProfileForm" class="profile-not-found">
+        <div class="no-profile-message">
+            <h3>No Profile Found</h3>
+            <p>You don't have a profile yet. Create one to manage your personal information.</p>
+            <button @click="showCreateProfileForm = true" class="btn btn-primary">Create Profile</button>
+        </div>
+    </div>
+    
+    <!-- Profile display -->
+    <div v-else-if="profile && !editingProfile" class="profile-content">
+        <div class="profile-header">
+            <h3>{{ getUserDisplayName() }}</h3>
+            <button @click="editProfile" class="btn btn-secondary">Edit Profile</button>
+        </div>
+        
+        <div class="profile-sections">
+            <!-- Basic Information -->
+            <div class="profile-section">
+                <h4>Basic Information</h4>
+                <div class="profile-grid">
+                    <div class="profile-field">
+                        <label>Email:</label>
+                        <span>{{ userInfo.email }}</span>
+                    </div>
+                    <div class="profile-field">
+                        <label>Role:</label>
+                        <span>{{ userInfo?.role || 'User' }}</span>
+                    </div>
+                    <div class="profile-field">
+                        <label>First Name:</label>
+                        <span>{{ profile.firstName || 'Not set' }}</span>
+                    </div>
+                    <div class="profile-field">
+                        <label>Last Name:</label>
+                        <span>{{ profile.lastName || 'Not set' }}</span>
+                    </div>
+                    <div class="profile-field">
+                        <label>Suffix:</label>
+                        <span>{{ profile.suffix || 'Not set' }}</span>
+                    </div>
+                    <div class="profile-field">
+                        <label>Date of Birth:</label>
+                        <span>{{ profile.dob ? formatDate(profile.dob) : 'Not set' }}</span>
+                    </div>
+                    <div class="profile-field">
+                        <label>Gender:</label>
+                        <span>{{ profile.gender || 'Not set' }}</span>
+                    </div>
+                    <div class="profile-field">
+                        <label>Phone:</label>
+                        <span>{{ profile.phone || 'Not set' }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Address Information -->
+            <div class="profile-section">
+                <h4>Address Information</h4>
+                <div class="profile-grid">
+                    <div class="profile-field full-width">
+                        <label>Address:</label>
+                        <span>{{ profile.address || 'Not set' }}</span>
+                    </div>
+                    <div class="profile-field">
+                        <label>City:</label>
+                        <span>{{ profile.city || 'Not set' }}</span>
+                    </div>
+                    <div class="profile-field">
+                        <label>Postal Code:</label>
+                        <span>{{ profile.postalCode || 'Not set' }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- School Information -->
+            <div class="profile-section">
+                <h4>School Information</h4>
+                <div class="profile-grid">
+                    <div class="profile-field">
+                        <label>School Name:</label>
+                        <span>{{ profile.schoolName || 'Not set' }}</span>
+                    </div>
+                    <div class="profile-field full-width">
+                        <label>School Address:</label>
+                        <span>{{ profile.schoolAddress || 'Not set' }}</span>
+                    </div>
+                    <div class="profile-field">
+                        <label>School Head:</label>
+                        <span>{{ profile.schoolHead || 'Not set' }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Physical Information -->
+            <div class="profile-section">
+                <h4>Physical Information</h4>
+                <div class="profile-grid">
+                    <div class="profile-field">
+                        <label>Height:</label>
+                        <span>{{ profile.heightCm ? profile.heightCm + ' cm' : 'Not set' }}</span>
+                    </div>
+                    <div class="profile-field">
+                        <label>Weight:</label>
+                        <span>{{ profile.weightKg ? profile.weightKg + ' kg' : 'Not set' }}</span>
+                    </div>
+                    <div class="profile-field">
+                        <label>Blood Type:</label>
+                        <span>{{ profile.bloodType || 'Not set' }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Emergency Contact -->
+            <div class="profile-section">
+                <h4>Emergency Contact</h4>
+                <div class="profile-grid">
+                    <div class="profile-field">
+                        <label>Contact Name:</label>
+                        <span>{{ profile.emergencyContact || 'Not set' }}</span>
+                    </div>
+                    <div class="profile-field">
+                        <label>Relation:</label>
+                        <span>{{ profile.contactRelation || 'Not set' }}</span>
+                    </div>
+                    <div class="profile-field">
+                        <label>Contact Phone:</label>
+                        <span>{{ profile.contactPhone || 'Not set' }}</span>
+                    </div>
+                    <div class="profile-field">
+                        <label>Contact Email:</label>
+                        <span>{{ profile.contactEmail || 'Not set' }}</span>
+                    </div>
+                    <div class="profile-field full-width">
+                        <label>Contact Address:</label>
+                        <span>{{ profile.contactAddress || 'Not set' }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Club Information -->
+            <div class="profile-section">
+                <h4>Club Information</h4>
+                <div class="profile-grid">
+                    <div class="profile-field">
+                        <label>Date Joined:</label>
+                        <span>{{ profile.dateJoined ? formatDate(profile.dateJoined) : 'Not set' }}</span>
+                    </div>
+                    <div class="profile-field" v-if="isArcher() && profile.coachId">
+                        <label>Assigned Coach:</label>
+                        <span>{{ getCoachName(profile.coachId) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Profile Edit Form -->
+    <div v-if="editingProfile || showCreateProfileForm" class="profile-edit-form">
+        <h3>{{ showCreateProfileForm ? 'Create Profile' : 'Edit Profile' }}</h3>
+        <form @submit.prevent="saveProfile">
+            <!-- Basic Information -->
+            <div class="form-section">
+                <h4>Basic Information</h4>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="firstName">First Name:</label>
+                        <input type="text" id="firstName" v-model="profileForm.firstName" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name:</label>
+                        <input type="text" id="lastName" v-model="profileForm.lastName" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="suffix">Suffix:</label>
+                        <input type="text" id="suffix" v-model="profileForm.suffix" class="form-control" placeholder="Jr., Sr., III, etc.">
+                    </div>
+                    <div class="form-group">
+                        <label for="dob">Date of Birth:</label>
+                        <input type="date" id="dob" v-model="profileForm.dob" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">Gender:</label>
+                        <select id="gender" v-model="profileForm.gender" class="form-control">
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                            <option value="Prefer not to say">Prefer not to say</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number:</label>
+                        <input type="tel" id="phone" v-model="profileForm.phone" class="form-control" placeholder="+1234567890">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Address Information -->
+            <div class="form-section">
+                <h4>Address Information</h4>
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="address">Address:</label>
+                        <textarea id="address" v-model="profileForm.address" class="form-control" rows="2" placeholder="123 Main St, Apt 4B"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="city">City:</label>
+                        <input type="text" id="city" v-model="profileForm.city" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="postalCode">Postal Code:</label>
+                        <input type="text" id="postalCode" v-model="profileForm.postalCode" class="form-control">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- School Information -->
+            <div class="form-section">
+                <h4>School Information</h4>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="schoolName">School Name:</label>
+                        <input type="text" id="schoolName" v-model="profileForm.schoolName" class="form-control">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="schoolAddress">School Address:</label>
+                        <textarea id="schoolAddress" v-model="profileForm.schoolAddress" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="schoolHead">School Head/Principal:</label>
+                        <input type="text" id="schoolHead" v-model="profileForm.schoolHead" class="form-control">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Physical Information -->
+            <div class="form-section">
+                <h4>Physical Information</h4>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="heightCm">Height (cm):</label>
+                        <input type="number" id="heightCm" v-model="profileForm.heightCm" class="form-control" min="0" max="300">
+                    </div>
+                    <div class="form-group">
+                        <label for="weightKg">Weight (kg):</label>
+                        <input type="number" id="weightKg" v-model="profileForm.weightKg" class="form-control" min="0" max="500" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="bloodType">Blood Type:</label>
+                        <select id="bloodType" v-model="profileForm.bloodType" class="form-control">
+                            <option value="">Select Blood Type</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Emergency Contact -->
+            <div class="form-section">
+                <h4>Emergency Contact</h4>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="emergencyContact">Contact Name:</label>
+                        <input type="text" id="emergencyContact" v-model="profileForm.emergencyContact" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="contactRelation">Relation:</label>
+                        <select id="contactRelation" v-model="profileForm.contactRelation" class="form-control">
+                            <option value="">Select Relation</option>
+                            <option value="Parent">Parent</option>
+                            <option value="Mother">Mother</option>
+                            <option value="Father">Father</option>
+                            <option value="Guardian">Guardian</option>
+                            <option value="Sibling">Sibling</option>
+                            <option value="Spouse">Spouse</option>
+                            <option value="Friend">Friend</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="contactPhone">Contact Phone:</label>
+                        <input type="tel" id="contactPhone" v-model="profileForm.contactPhone" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="contactEmail">Contact Email:</label>
+                        <input type="email" id="contactEmail" v-model="profileForm.contactEmail" class="form-control">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="contactAddress">Contact Address:</label>
+                        <textarea id="contactAddress" v-model="profileForm.contactAddress" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Club Information -->
+            <div class="form-section">
+                <h4>Club Information</h4>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="dateJoined">Date Joined:</label>
+                        <input type="date" id="dateJoined" v-model="profileForm.dateJoined" class="form-control">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" @click="cancelProfileEdit" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">{{ showCreateProfileForm ? 'Create Profile' : 'Save Changes' }}</button>
+            </div>
+        </form>
+    </div>
+</div>

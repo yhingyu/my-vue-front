@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Debug</title>
+    <script src="https://unpkg.com/vue@3.0.2"></script>
+</head>
+<body>
+    <div id="app">
+        <h1>Dashboard Debug Tool</h1>
+        
+        <div v-if="!isAuthenticated">
+            <h2>Test Login</h2>
+            <input v-model="email" placeholder="Email" type="email">
+            <input v-model="password" placeholder="Password" type="password">
+            <button @click="testLogin">Test Login</button>
+        </div>
+        
+        <div v-else>
+            <h2>Authentication Status: ✅ Authenticated</h2>
+            <p><strong>User:</strong> {{ userInfo?.email }} ({{ userInfo?.role }})</p>
+            
+            <h3>Test API Calls</h3>
+            <button @click="testUsersAPI">Test Users API</button>
+            <button @click="testProfileAPI">Test Profile API</button>
+            
+            <h3>Results</h3>
+            <pre>{{ apiResults }}</pre>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    isAuthenticated: false,
+                    userInfo: null,
+                    email: 'admin@archeryclub.com',
+                    password: 'admin123',
+                    apiResults: ''
+                };
+            },
+            
+            async mounted() {
+                await this.checkAuth();
+            },
+            
+            methods: {
+                async checkAuth() {
+                    const token = localStorage.getItem('auth_token');
+                    const userInfo = localStorage.getItem('user_info');
+                    
+                    if (token && userInfo) {
+                        this.isAuthenticated = true;
+                        this.userInfo = JSON.parse(userInfo);
+                    }
+                },
+                
+                async testLogin() {
+                    try {
+                        const response = await fetch('http://localhost:3000/auth/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                email: this.email,
+                                password: this.password
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            localStorage.setItem('auth_token', data.access_token);
+                            localStorage.setItem('user_info', JSON.stringify(data.user));
+                            
+                            this.isAuthenticated = true;
+                            this.userInfo = data.user;
+                            this.apiResults = 'Login successful!';
+                        } else {
+                            const error = await response.text();
+                            this.apiResults = `Login failed: ${error}`;
+                        }
+                    } catch (error) {
+                        this.apiResults = `Login error: ${error.message}`;
+                    }
+                },
+                
+                async testUsersAPI() {
+                    try {
+                        const token = localStorage.getItem('auth_token');
+                        const response = await fetch('http://localhost:3000/users', {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            const users = await response.json();
+                            this.apiResults = `Users API Success: Found ${users.length} users\n` + JSON.stringify(users.slice(0, 2), null, 2);
+                        } else {
+                            const error = await response.text();
+                            this.apiResults = `Users API Failed: ${response.status} - ${error}`;
+                        }
+                    } catch (error) {
+                        this.apiResults = `Users API Error: ${error.message}`;
+                    }
+                },
+                
+                async testProfileAPI() {
+                    try {
+                        const token = localStorage.getItem('auth_token');
+                        const response = await fetch('http://localhost:3000/auth/profile', {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            const profile = await response.json();
+                            this.apiResults = `Profile API Success:\n` + JSON.stringify(profile, null, 2);
+                        } else {
+                            const error = await response.text();
+                            this.apiResults = `Profile API Failed: ${response.status} - ${error}`;
+                        }
+                    } catch (error) {
+                        this.apiResults = `Profile API Error: ${error.message}`;
+                    }
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

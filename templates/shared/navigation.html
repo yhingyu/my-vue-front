@@ -1,0 +1,18 @@
+<!-- Navigation -->
+<nav class="dashboard-nav">
+    <button @click="activeTab = 'overview'" :class="{ active: activeTab === 'overview' }" class="nav-tab">
+        📊 Overview
+    </button>
+    <button v-if="isAdmin()" @click="activeTab = 'users'" :class="{ active: activeTab === 'users' }" class="nav-tab">
+        👥 Users
+    </button>
+    <button v-if="isAdmin()" @click="activeTab = 'assignments'" :class="{ active: activeTab === 'assignments' }" class="nav-tab">
+        🔗 Assignments
+    </button>
+    <button v-if="isCoach()" @click="activeTab = 'archers'" :class="{ active: activeTab === 'archers' }" class="nav-tab">
+        🏹 My Archers
+    </button>
+    <button @click="activeTab = 'profile'" :class="{ active: activeTab === 'profile' }" class="nav-tab">
+        👤 Profile
+    </button>
+</nav>

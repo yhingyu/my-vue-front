@@ -150,6 +150,1284 @@ body {
     font-style: italic;
 }
 
+/* Profile Styles */
+.profile-content {
+    max-width: 1200px;
+}
+
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.profile-header h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.8rem;
+}
+
+.profile-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.profile-section {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid #3498db;
+}
+
+.profile-section h4 {
+    margin: 0 0 1rem 0;
+    color: #2c3e50;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.profile-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.profile-field.full-width {
+    grid-column: 1 / -1;
+}
+
+.profile-field label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.profile-field span {
+    color: #6c757d;
+    font-size: 0.95rem;
+    padding: 0.5rem;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
+    min-height: 1.2rem;
+}
+
+.no-profile-message {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px dashed #dee2e6;
+}
+
+.no-profile-message h3 {
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
+
+.no-profile-message p {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+}
+
+/* Profile Form Styles */
+.profile-edit-form {
+    max-width: 1000px;
+}
+
+.profile-edit-form h3 {
+    margin-bottom: 2rem;
+    color: #2c3e50;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #3498db;
+}
+
+.form-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #3498db;
+}
+
+.form-section h4 {
+    margin: 0 0 1.5rem 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.form-control {
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+.form-control::placeholder {
+    color: #6c757d;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    padding-top: 1.5rem;
+    border-top: 1px solid #dee2e6;
+    margin-top: 2rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-primary {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+.btn-danger {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 8px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.create-user-modal {
+    max-width: 800px;
+    width: 95%;
+}
+
+.modal-content h3 {
+    margin: 0 0 1.5rem 0;
+    color: #2c3e50;
+    font-size: 1.5rem;
+    text-align: center;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #3498db;
+}
+
+/* Dashboard Navigation Styles */
+.dashboard-nav {
+    background: white;
+    padding: 0 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+    border-radius: 12px;
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.nav-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    border: none;
+    background: none;
+    color: #7f8c8d;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    border-radius: 8px 8px 0 0;
+}
+
+.nav-tab:hover {
+    color: #2c3e50;
+    background: #f8f9fa;
+}
+
+.nav-tab.active {
+    color: #3498db;
+    border-bottom-color: #3498db;
+    background: #f8f9fa;
+}
+
+.dashboard-main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.tab-content {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.tab-content h2 {
+    color: #2c3e50;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #ecf0f1;
+}
+
+/* Stats Tiles Styles */
+.stats-tiles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.stats-tile {
+    position: relative;
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.stats-tile:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
+}
+
+.tile-icon {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    opacity: 0.1;
+    font-size: 4rem;
+    transition: all 0.3s ease;
+}
+
+.stats-tile:hover .tile-icon {
+    opacity: 0.2;
+    transform: scale(1.1);
+}
+
+.tile-content {
+    position: relative;
+    z-index: 2;
+}
+
+.tile-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.tile-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #34495e;
+    margin-bottom: 0.25rem;
+}
+
+.tile-description {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    opacity: 0.8;
+}
+
+.tile-accent {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    border-radius: 0 0 16px 16px;
+}
+
+/* Tile Color Themes */
+.users-tile .tile-accent {
+    background: linear-gradient(90deg, #3498db, #2980b9);
+}
+
+.users-tile:hover {
+    border-color: #3498db;
+}
+
+.coaches-tile .tile-accent {
+    background: linear-gradient(90deg, #9b59b6, #8e44ad);
+}
+
+.coaches-tile:hover {
+    border-color: #9b59b6;
+}
+
+.archers-tile .tile-accent {
+    background: linear-gradient(90deg, #27ae60, #229954);
+}
+
+.archers-tile:hover {
+    border-color: #27ae60;
+}
+
+.assignments-tile .tile-accent {
+    background: linear-gradient(90deg, #e74c3c, #c0392b);
+}
+
+.assignments-tile:hover {
+    border-color: #e74c3c;
+}
+
+.my-archers-tile .tile-accent {
+    background: linear-gradient(90deg, #f39c12, #e67e22);
+}
+
+.my-archers-tile:hover {
+    border-color: #f39c12;
+}
+
+.experience-tile .tile-accent {
+    background: linear-gradient(90deg, #16a085, #138d75);
+}
+
+.experience-tile:hover {
+    border-color: #16a085;
+}
+
+.specialization-tile .tile-accent {
+    background: linear-gradient(90deg, #8e44ad, #7d3c98);
+}
+
+.specialization-tile:hover {
+    border-color: #8e44ad;
+}
+
+.personal-tile .tile-accent {
+    background: linear-gradient(90deg, #2ecc71, #27ae60);
+}
+
+.personal-tile:hover {
+    border-color: #2ecc71;
+}
+
+.bow-tile .tile-accent {
+    background: linear-gradient(90deg, #e67e22, #d35400);
+}
+
+.bow-tile:hover {
+    border-color: #e67e22;
+}
+
+.coach-tile .tile-accent {
+    background: linear-gradient(90deg, #3498db, #2980b9);
+}
+
+.coach-tile:hover {
+    border-color: #3498db;
+}
+
+/* Quick Actions Section */
+.quick-actions-section {
+    margin-top: 3rem;
+}
+
+.quick-actions-section h3 {
+    color: #2c3e50;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #ecf0f1;
+}
+
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.action-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    background: white;
+    border: 2px solid #ecf0f1;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+}
+
+.action-card:hover {
+    transform: translateY(-4px);
+    border-color: #3498db;
+    box-shadow: 0 6px 25px rgba(52, 152, 219, 0.15);
+}
+
+.action-icon {
+    font-size: 2rem;
+    opacity: 0.8;
+}
+
+.action-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* Archer Card Profile Section Styles */
+.archer-profile-section {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.archer-avatar {
+    flex-shrink: 0;
+}
+
+.avatar-placeholder {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border: 2px solid #dee2e6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.archer-card:hover .avatar-placeholder {
+    border-color: #3498db;
+    transform: scale(1.05);
+}
+
+.avatar-icon {
+    font-size: 1.8rem;
+    color: #6c757d;
+    transition: color 0.3s ease;
+}
+
+.archer-card:hover .avatar-icon {
+    color: #3498db;
+}
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    transition: all 0.3s ease;
+}
+
+.archer-card:hover .avatar-img {
+    transform: scale(1.05);
+}
+
+.archer-info {
+    flex: 1;
+    min-width: 0; /* Allows text to truncate properly */
+}
+
+.archer-info .archer-header {
+    margin-bottom: 0.75rem;
+}
+
+.archer-info .archer-header h4 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.archer-info .archer-email {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.archer-info .archer-details {
+    margin-bottom: 1rem;
+}
+
+.archer-info .archer-details p {
+    margin: 0.25rem 0;
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+/* Enhanced archer card styling */
+.archer-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.archer-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    border-color: #3498db;
+}
+
+.archer-card:hover .remove-assignment-btn {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+.archer-card:hover .remove-assignment-btn {
+    opacity: 1;
+}
+
+.archer-card.available {
+    border-left: 4px solid #27ae60;
+}
+
+.archer-card.available:hover {
+    border-left-color: #27ae60;
+    border-top-color: #27ae60;
+    border-right-color: #27ae60;
+    border-bottom-color: #27ae60;
+}
+
+/* View Profile Button Styles */
+.view-profile-btn {
+    margin-top: 8px;
+    display: block;
+    font-size: 0.875rem;
+    padding: 4px 12px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    color: #495057;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.view-profile-btn:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+    color: #212529;
+}
+
+/* Profile Navigation Styles */
+.profile-navigation {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+    color: white;
+    transform: translateX(-2px);
+}
+
+/* Archer Name Link Styles */
+.archer-name-link {
+    color: #2c3e50;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border-bottom: 2px solid transparent;
+}
+
+.archer-name-link:hover {
+    color: #3498db;
+    text-decoration: none;
+    border-bottom: 2px solid #3498db;
+    cursor: pointer;
+}
+
+.archer-name-link:focus {
+    outline: none;
+    color: #3498db;
+    border-bottom: 2px solid #3498db;
+}
+
+/* Coach Name Link Styles */
+.coach-name-link {
+    color: #27ae60;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border-bottom: 2px solid transparent;
+}
+
+.coach-name-link:hover {
+    color: #2ecc71;
+    text-decoration: none;
+    border-bottom: 2px solid #2ecc71;
+    cursor: pointer;
+}
+
+.coach-name-link:focus {
+    outline: none;
+    color: #2ecc71;
+    border-bottom: 2px solid #2ecc71;
+}
+
+/* Remove Assignment Button Styles */
+.remove-assignment-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 28px;
+    height: 28px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 100;
+    line-height: 1;
+    padding: 0;
+    opacity: 0.9;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.remove-assignment-btn:hover {
+    background-color: #c82333;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+    opacity: 1;
+}
+
+.remove-assignment-btn:active {
+    transform: scale(0.95);
+}
+
+/* Profile Image Placeholder Styles */
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.profile-header-content {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.profile-image-section {
+    flex-shrink: 0;
+}
+
+.profile-image-placeholder {
+    width: 250px;
+    height: 250px;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border: 3px solid #dee2e6;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-image-placeholder:hover {
+    border-color: #3498db;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.2);
+}
+
+.profile-avatar-icon {
+    font-size: 2.5rem;
+    color: #6c757d;
+    transition: all 0.3s ease;
+}
+
+.profile-image-placeholder:hover .profile-avatar-icon {
+    color: #3498db;
+    transform: scale(1.1);
+}
+
+.profile-avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    object-fit: cover;
+    transition: all 0.3s ease;
+}
+
+.profile-image-placeholder:hover .profile-avatar-img {
+    transform: scale(1.05);
+}
+
+.profile-header-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.profile-header-text h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.profile-name {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-weight: 400;
+}
+
+/* Profile sections styling */
+.profile-content {
+    max-width: 1000px;
+}
+
+.profile-sections {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.profile-section {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.3s ease;
+}
+
+.profile-section:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.profile-section h4 {
+    margin: 0 0 1rem 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    border-bottom: 2px solid #f8f9fa;
+    padding-bottom: 0.5rem;
+}
+
+/* Responsive adjustments for profile */
+@media (max-width: 768px) {
+    .profile-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .profile-header-content {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .profile-image-placeholder {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .profile-avatar-icon {
+        font-size: 2rem;
+    }
+    
+    .profile-header-text h3 {
+        font-size: 1.3rem;
+    }
+}
+
+/* Archer Profile Modal Styles */
+.archer-profile-modal {
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    margin: 0 2rem; /* Add side margins */
+}
+
+/* Professional ID Card Layout */
+.archer-id-card {
+    position: relative;
+    margin-bottom: 1rem;
+    padding: 2.5rem 10px; /* Add 10px left and right padding */
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 3px solid #e3e6ea;
+    border-radius: 20px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+/* ID Card Header Strip */
+.archer-id-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: linear-gradient(90deg, #3498db, #2980b9, #3498db);
+}
+
+/* ID Card Corner Badge */
+.archer-id-card::after {
+    content: '🏹';
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 1.2rem;
+    opacity: 0.3;
+}
+
+.archer-id-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-right: 110px; /* Make space for floating image */
+}
+
+.archer-primary-name {
+    margin: 0 0 1rem 0;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1a202c;
+    line-height: 1.1;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 0.75rem;
+    text-align: left;
+}
+
+.archer-small-email {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.85rem;
+    color: #718096;
+    font-weight: 400;
+    font-style: italic;
+    background: #f7fafc;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    border-left: 3px solid #3498db;
+    text-align: left;
+}
+
+.archer-phone, .archer-city, .archer-age {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.05rem;
+    color: #2d3748;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-align: left;
+}
+
+
+
+.archer-id-image {
+    position: absolute;
+    top: 20px;
+    right: 10px;
+    z-index: 2;
+}
+
+.archer-id-image-placeholder {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #ffffff 0%, #f1f3f4 100%);
+    border: 3px solid #cbd5e0;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Photo frame effect */
+.archer-id-image-placeholder::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #3498db, #2980b9);
+    z-index: -1;
+    border-radius: 12px;
+}
+
+.archer-id-image-placeholder:hover {
+    border-color: #3498db;
+    box-shadow: 0 8px 24px rgba(52, 152, 219, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: translateY(-3px) scale(1.02);
+}
+
+.archer-profile-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    object-fit: cover;
+    transition: all 0.3s ease;
+}
+
+.archer-id-image-placeholder:hover .archer-profile-img {
+    transform: scale(1.05);
+}
+
+.archer-id-image-placeholder:hover .archer-id-avatar-icon {
+    color: #3498db;
+    transform: scale(1.1);
+}
+
+/* ID Card Professional styling */
+.archer-profile-modal {
+    max-width: 480px;
+    background: #ffffff;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.2);
+}
+
+.archer-profile-modal .modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    margin: 0;
+    border-bottom: none;
+}
+
+.archer-profile-modal .modal-header h3 {
+    color: white;
+    font-weight: 700;
+    margin: 0;
+}
+
+.archer-profile-modal .close-btn {
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.archer-profile-modal .close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.archer-profile-modal .modal-body {
+    padding: 0;
+}
+
+.archer-profile-details {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.archer-profile-details .profile-section {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.archer-profile-details .profile-section h5 {
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    border-bottom: 2px solid #f8f9fa;
+    padding-bottom: 0.5rem;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f8f9fa;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+    background-color: #f8f9fa;
+    color: #dc3545;
+}
+
+/* Responsive adjustments for archer profile modal */
+@media (max-width: 768px) {
+    .archer-profile-modal {
+        margin: 1rem;
+        max-width: calc(100% - 2rem);
+        border-radius: 16px;
+    }
+    
+    .archer-id-card {
+        padding: 2rem 10px;
+    }
+    
+    .archer-id-card::after {
+        top: 15px;
+        right: 15px;
+        font-size: 1rem;
+    }
+    
+    .archer-primary-name {
+        font-size: 1.4rem;
+    }
+    
+    .archer-id-image {
+        top: 15px;
+        right: 10px;
+    }
+    
+    .archer-id-image-placeholder {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .archer-id-info {
+        margin-right: 90px;
+    }
+    
+    .archer-phone, .archer-city, .archer-age {
+        font-size: 0.95rem;
+    }
+    
+    .archer-small-email {
+        font-size: 0.8rem;
+    }
+    
+    .archer-profile-modal .modal-header {
+        padding: 1.25rem 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .archer-profile-modal {
+        margin: 0.5rem;
+        max-width: calc(100% - 1rem);
+    }
+    
+    .archer-id-card {
+        padding: 1.5rem 10px;
+        border-radius: 16px;
+    }
+    
+    .archer-primary-name {
+        font-size: 1.2rem;
+    }
+    
+    .archer-id-image {
+        top: 10px;
+        right: 10px;
+    }
+    
+    .archer-id-image-placeholder {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .archer-id-info {
+        margin-right: 80px;
+    }
+    
+    .archer-phone, .archer-city, .archer-age {
+        font-size: 0.9rem;
+    }
+}
+
+/* Responsive adjustments for archer cards */
+@media (max-width: 768px) {
+    .archer-profile-section {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0.75rem;
+    }
+    
+    .avatar-placeholder {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .avatar-icon {
+        font-size: 1.5rem;
+    }
+    
+    .archer-info .archer-header h4 {
+        font-size: 1rem;
+    }
+}
+
+/* Animation for number changes */
+.tile-number {
+    transition: all 0.3s ease;
+}
+
+.tile-number.updating {
+    transform: scale(1.1);
+    color: #3498db;
+}
+
+/* Loading state for tiles */
+.stats-tile.loading {
+    opacity: 0.6;
+}
+
+.stats-tile.loading .tile-number {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading-shimmer 1.5s infinite;
+    color: transparent;
+    border-radius: 4px;
+}
+
+@keyframes loading-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .container {
@@ -173,5 +1451,72 @@ body {
     
     .dashboard-card {
         padding: 1.5rem;
+    }
+    
+    .profile-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .no-profile-message {
+        padding: 2rem 1rem;
+    }
+    
+    .modal-content {
+        width: 95%;
+        padding: 1.5rem;
+        max-height: 95vh;
+    }
+    
+    .create-user-modal {
+        width: 98%;
+        padding: 1rem;
+    }
+    
+    /* Responsive Stats Tiles */
+    .stats-tiles-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin: 1.5rem 0;
+    }
+    
+    .stats-tile {
+        padding: 1.5rem;
+    }
+    
+    .tile-icon {
+        font-size: 3rem;
+        top: 1rem;
+        right: 1rem;
+    }
+    
+    .tile-number {
+        font-size: 2rem;
+    }
+    
+    .quick-actions-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .action-card {
+        padding: 1rem;
+    }
+    
+    .action-icon {
+        font-size: 1.5rem;
     }
 }

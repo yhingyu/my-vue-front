@@ -6,198 +6,405 @@
     <title>Dashboard - My Archery Club</title>
     <script src="https://unpkg.com/vue@3.0.2"></script>
     <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/dashboard-base.css">
+    <link rel="stylesheet" href="css/roles/admin.css">
+    <link rel="stylesheet" href="css/roles/coach.css">
+    <link rel="stylesheet" href="css/roles/archer.css">
 </head>
 <body>
     <div id="app">
+        <!-- Loading State -->
         <div v-if="isLoading" class="loading">
             <div class="loading-spinner"></div>
             <p>Loading your dashboard...</p>
         </div>
         
+        <!-- Main Dashboard -->
         <div v-else-if="isAuthenticated" class="dashboard-container">
-            <!-- Header with role-specific styling -->
-            <header class="dashboard-header" :class="userInfo?.role ? 'header-' + userInfo.role.toLowerCase() : ''">
+            <!-- Header -->
+            <header class="dashboard-header">
                 <div class="header-content">
                     <div class="header-left">
                         <h1>🏹 My Archery Club</h1>
-                        <div class="role-badge" :class="userInfo?.role ? 'badge-' + userInfo.role.toLowerCase() : ''">
-                            <span class="role-icon">{{ getRoleIcon(userInfo?.role) }}</span>
+                        <div class="role-badge">
                             <span>{{ userInfo?.role || 'User' }} Dashboard</span>
                         </div>
                     </div>
-                    
                     <div class="header-right">
                         <div class="user-info">
-                            <span class="welcome">Welcome, {{ getUserDisplayName() }}!</span>
+                            <span>Welcome, {{ getUserDisplayName() }}!</span>
                             <button @click="logout" class="logout-btn">Logout</button>
                         </div>
                     </div>
                 </div>
             </header>
 
-            <!-- Navigation Tabs -->
+            <!-- Navigation -->
             <nav class="dashboard-nav">
-                <button 
-                    v-for="tab in availableTabs" 
-                    :key="tab.id"
-                    @click="activeTab = tab.id"
-                    :class="{ active: activeTab === tab.id }"
-                    class="nav-tab"
-                >
-                    {{ tab.icon }} {{ tab.label }}
+                <button @click="activeTab = 'overview'" :class="{ active: activeTab === 'overview' }" class="nav-tab">
+                    📊 Overview
+                </button>
+                <button v-if="isAdmin()" @click="activeTab = 'users'" :class="{ active: activeTab === 'users' }" class="nav-tab">
+                    👥 Users
+                </button>
+                <button v-if="isAdmin()" @click="activeTab = 'assignments'" :class="{ active: activeTab === 'assignments' }" class="nav-tab">
+                    🔗 Assignments
+                </button>
+                <button v-if="isCoach()" @click="activeTab = 'archers'" :class="{ active: activeTab === 'archers' }" class="nav-tab">
+                    🏹 My Archers
+                </button>
+                <button @click="activeTab = 'profile'" :class="{ active: activeTab === 'profile' }" class="nav-tab">
+                    👤 Profile
                 </button>
             </nav>
 
-            <!-- Main Content Area -->
+            <!-- Main Content -->
             <main class="dashboard-main">
                 <!-- Overview Tab -->
                 <div v-if="activeTab === 'overview'" class="tab-content">
-                    <div class="stats-grid">
+                    <h2>Dashboard Overview</h2>
+                    
+                    <!-- Stats Tiles Grid -->
+                    <div class="stats-tiles-grid">
                         <!-- Admin Stats -->
-                        <div v-if="isAdmin()" class="stat-card admin-stat">
-                            <div class="stat-icon">👥</div>
-                            <div class="stat-content">
-                                <h3>Total Users</h3>
-                                <p class="stat-number">{{ dashboardData.totalUsers || 0 }}</p>
+                        <template v-if="isAdmin()">
+                            <div class="stats-tile users-tile">
+                                <div class="tile-icon">
+                                    <span class="icon">👥</span>
+                                </div>
+                                <div class="tile-content">
+                                    <div class="tile-number">{{ totalUsers }}</div>
+                                    <div class="tile-label">Total Users</div>
+                                    <div class="tile-description">Registered members</div>
+                                </div>
+                                <div class="tile-accent"></div>
                             </div>
-                        </div>
+                            
+                            <div class="stats-tile coaches-tile">
+                                <div class="tile-icon">
+                                    <span class="icon">🎯</span>
+                                </div>
+                                <div class="tile-content">
+                                    <div class="tile-number">{{ totalCoaches }}</div>
+                                    <div class="tile-label">Active Coaches</div>
+                                    <div class="tile-description">Training specialists</div>
+                                </div>
+                                <div class="tile-accent"></div>
+                            </div>
+                            
+                            <div class="stats-tile archers-tile">
+                                <div class="tile-icon">
+                                    <span class="icon">🏹</span>
+                                </div>
+                                <div class="tile-content">
+                                    <div class="tile-number">{{ totalArchers }}</div>
+                                    <div class="tile-label">Active Archers</div>
+                                    <div class="tile-description">Club members</div>
+                                </div>
+                                <div class="tile-accent"></div>
+                            </div>
+                            
+                            <div class="stats-tile assignments-tile">
+                                <div class="tile-icon">
+                                    <span class="icon">🔗</span>
+                                </div>
+                                <div class="tile-content">
+                                    <div class="tile-number">{{ getAssignmentCount() }}</div>
+                                    <div class="tile-label">Coach Assignments</div>
+                                    <div class="tile-description">Active pairings</div>
+                                </div>
+                                <div class="tile-accent"></div>
+                            </div>
+                        </template>
                         
-                        <div v-if="isAdmin()" class="stat-card admin-stat">
-                            <div class="stat-icon">🎯</div>
-                            <div class="stat-content">
-                                <h3>Active Coaches</h3>
-                                <p class="stat-number">{{ dashboardData.totalCoaches || 0 }}</p>
-                            </div>
-                        </div>
-                        
-                        <div v-if="isAdmin()" class="stat-card admin-stat">
-                            <div class="stat-icon">🏹</div>
-                            <div class="stat-content">
-                                <h3>Total Archers</h3>
-                                <p class="stat-number">{{ dashboardData.totalArchers || 0 }}</p>
-                            </div>
-                        </div>
-
                         <!-- Coach Stats -->
-                        <div v-if="isCoach()" class="stat-card coach-stat">
-                            <div class="stat-icon">👥</div>
-                            <div class="stat-content">
-                                <h3>My Archers</h3>
-                                <p class="stat-number">{{ dashboardData.myArchers || 12 }}</p>
+                        <template v-else-if="isCoach()">
+                            <div class="stats-tile my-archers-tile">
+                                <div class="tile-icon">
+                                    <span class="icon">🏹</span>
+                                </div>
+                                <div class="tile-content">
+                                    <div class="tile-number">{{ myArchers?.length || 0 }}</div>
+                                    <div class="tile-label">My Archers</div>
+                                    <div class="tile-description">Students under training</div>
+                                </div>
+                                <div class="tile-accent"></div>
                             </div>
-                        </div>
+                            
+                            <div class="stats-tile experience-tile">
+                                <div class="tile-icon">
+                                    <span class="icon">⭐</span>
+                                </div>
+                                <div class="tile-content">
+                                    <div class="tile-number">{{ userProfile?.experienceLevel || 'N/A' }}</div>
+                                    <div class="tile-label">Experience Level</div>
+                                    <div class="tile-description">Coaching expertise</div>
+                                </div>
+                                <div class="tile-accent"></div>
+                            </div>
+                            
+                            <div class="stats-tile specialization-tile">
+                                <div class="tile-icon">
+                                    <span class="icon">🎪</span>
+                                </div>
+                                <div class="tile-content">
+                                    <div class="tile-number">{{ userProfile?.bowType || 'Various' }}</div>
+                                    <div class="tile-label">Specialization</div>
+                                    <div class="tile-description">Primary bow type</div>
+                                </div>
+                                <div class="tile-accent"></div>
+                            </div>
+                        </template>
                         
-                        <div v-if="isCoach()" class="stat-card coach-stat">
-                            <div class="stat-icon">📅</div>
-                            <div class="stat-content">
-                                <h3>Sessions This Week</h3>
-                                <p class="stat-number">{{ dashboardData.weekSessions || 8 }}</p>
-                            </div>
-                        </div>
-
                         <!-- Archer Stats -->
-                        <div v-if="isArcher()" class="stat-card archer-stat">
-                            <div class="stat-icon">🎯</div>
-                            <div class="stat-content">
-                                <h3>Current Score</h3>
-                                <p class="stat-number">{{ dashboardData.currentScore || 8.5 }}</p>
+                        <template v-else-if="isArcher()">
+                            <div class="stats-tile personal-tile">
+                                <div class="tile-icon">
+                                    <span class="icon">👤</span>
+                                </div>
+                                <div class="tile-content">
+                                    <div class="tile-number">{{ userProfile?.experienceLevel || 'Beginner' }}</div>
+                                    <div class="tile-label">Experience Level</div>
+                                    <div class="tile-description">Current skill level</div>
+                                </div>
+                                <div class="tile-accent"></div>
                             </div>
-                        </div>
-                        
-                        <div v-if="isArcher()" class="stat-card archer-stat">
-                            <div class="stat-icon">⏱️</div>
-                            <div class="stat-content">
-                                <h3>Practice Hours</h3>
-                                <p class="stat-number">{{ dashboardData.practiceHours || 45 }}</p>
+                            
+                            <div class="stats-tile bow-tile">
+                                <div class="tile-icon">
+                                    <span class="icon">🏹</span>
+                                </div>
+                                <div class="tile-content">
+                                    <div class="tile-number">{{ userProfile?.bowType || 'Recurve' }}</div>
+                                    <div class="tile-label">Preferred Bow</div>
+                                    <div class="tile-description">Primary equipment</div>
+                                </div>
+                                <div class="tile-accent"></div>
                             </div>
-                        </div>
-                        
-                        <div v-if="isArcher()" class="stat-card archer-stat">
-                            <div class="stat-icon">📈</div>
-                            <div class="stat-content">
-                                <h3>Sessions</h3>
-                                <p class="stat-number">{{ dashboardData.totalSessions || 23 }}</p>
+                            
+                            <div class="stats-tile coach-tile">
+                                <div class="tile-icon">
+                                    <span class="icon">🎯</span>
+                                </div>
+                                <div class="tile-content">
+                                    <div class="tile-number">{{ getMyCoachName() || 'Unassigned' }}</div>
+                                    <div class="tile-label">My Coach</div>
+                                    <div class="tile-description">Training instructor</div>
+                                </div>
+                                <div class="tile-accent"></div>
                             </div>
-                        </div>
+                        </template>
                     </div>
-
-                    <!-- Quick Actions -->
-                    <div class="quick-actions">
+                    
+                    <!-- Quick Actions Section -->
+                    <div class="quick-actions-section" v-if="isAdmin()">
                         <h3>Quick Actions</h3>
-                        <div class="action-buttons">
-                            <!-- Admin Actions -->
-                            <button v-if="isAdmin()" @click="manageUsers" class="action-btn admin-btn">
-                                👥 Manage Users
+                        <div class="quick-actions-grid">
+                            <button @click="activeTab = 'users'" class="action-card">
+                                <span class="action-icon">👥</span>
+                                <span class="action-label">Manage Users</span>
                             </button>
-                            <button v-if="isAdmin()" @click="viewSystemLogs" class="action-btn admin-btn">
-                                📊 System Reports
+                            <button @click="activeTab = 'assignments'" class="action-card">
+                                <span class="action-icon">🔗</span>
+                                <span class="action-label">Coach Assignments</span>
                             </button>
-                            
-                            <!-- Coach Actions -->
-                            <button v-if="isCoach()" @click="scheduleSession" class="action-btn coach-btn">
-                                📅 Schedule Session
-                            </button>
-                            <button v-if="isCoach()" @click="viewProgress" class="action-btn coach-btn">
-                                📈 Track Progress
-                            </button>
-                            
-                            <!-- Archer Actions -->
-                            <button v-if="isArcher()" @click="recordPractice" class="action-btn archer-btn">
-                                🎯 Record Practice
-                            </button>
-                            <button v-if="isArcher()" @click="viewSchedule" class="action-btn archer-btn">
-                                📅 My Schedule
+                            <button @click="showCreateForm = true" class="action-card">
+                                <span class="action-icon">➕</span>
+                                <span class="action-label">Add New User</span>
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Users Management Tab (Admin only) -->
+                <!-- Users Tab (Admin only) -->
                 <div v-if="activeTab === 'users' && isAdmin()" class="tab-content">
                     <h2>User Management</h2>
-                    <div class="users-table">
-                        <p>User management features coming soon...</p>
-                        <div class="placeholder-content">
-                            <div class="mock-table">
-                                <div class="table-header">
-                                    <span>Name</span>
-                                    <span>Email</span>
-                                    <span>Role</span>
-                                    <span>Status</span>
+                    <button @click="showCreateForm = true" class="btn btn-primary">Create New User</button>
+                    
+                    <div v-if="usersLoading" class="loading">Loading users...</div>
+                    <div v-else class="table-container">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Suffix</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="user in users" :key="user.id">
+                                    <td>{{ user.email }}</td>
+                                    <td>{{ user.profile?.firstName || '-' }}</td>
+                                    <td>{{ user.profile?.lastName || '-' }}</td>
+                                    <td>{{ user.profile?.suffix || '-' }}</td>
+                                    <td>{{ user.role }}</td>
+                                    <td>{{ user.isActive ? 'Active' : 'Inactive' }}</td>
+                                    <td>
+                                        <button @click="editUser(user)" class="btn btn-sm">Edit</button>
+                                        <button @click="deleteUser(user)" class="btn btn-sm btn-danger">Delete</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Assignments Tab (Admin only) -->
+                <div v-if="activeTab === 'assignments' && isAdmin()" class="tab-content">
+                    <h2>Coach-Archer Assignments</h2>
+                    
+                    <!-- Current Assignments Section -->
+                    <div class="management-section">
+                        <h3>Current Assignments</h3>
+                        <button @click="loadAllAssignments" class="btn btn-primary">🔄 Refresh Assignments</button>
+                        
+                        <div v-if="assignmentsLoading" class="loading">Loading assignments...</div>
+                        <div v-else-if="currentAssignments.length === 0" class="no-data">
+                            <p>No current coach assignments found.</p>
+                        </div>
+                        <div v-else class="assignment-grid">
+                            <div v-for="assignment in currentAssignments" :key="assignment.id" class="assignment-card">
+                                <div class="archer-info">
+                                    <h4><a href="#" @click.prevent="viewArcherProfilePage(assignment)" class="archer-name-link">{{ getArcherName(assignment) }}</a></h4>
+                                    <p class="archer-email">{{ assignment.user?.email }}</p>
+                                    <p class="current-coach"><strong>Coach:</strong> <a href="#" @click.prevent="viewCoachProfilePage(assignment)" class="coach-name-link">{{ getCoachName(assignment.coachId) }}</a></p>
+                                    <p v-if="assignment.coachAssignedDate" class="assignment-date">
+                                        Assigned: {{ formatDate(assignment.coachAssignedDate) }}
+                                    </p>
                                 </div>
-                                <div class="table-row">
-                                    <span>John Coach</span>
-                                    <span>coach1@archeryclub.com</span>
-                                    <span class="badge-coach">COACH</span>
-                                    <span class="status-active">Active</span>
-                                </div>
-                                <div class="table-row">
-                                    <span>Sarah Archer</span>
-                                    <span>archer1@archeryclub.com</span>
-                                    <span class="badge-archer">ARCHER</span>
-                                    <span class="status-active">Active</span>
+                                <div class="assignment-actions">
+                                    <select v-model="newCoachSelections[assignment.id]" class="coach-select">
+                                        <option value="">Change to...</option>
+                                        <option v-for="coach in availableCoaches" :key="coach.id" :value="coach.id" :disabled="coach.id === assignment.coachId">
+                                            {{ getCoachDisplayName(coach) }}
+                                        </option>
+                                    </select>
+                                    <button @click="reassignCoach(assignment.id, newCoachSelections[assignment.id])" :disabled="!newCoachSelections[assignment.id]" class="btn btn-sm btn-warning">
+                                        Reassign
+                                    </button>
+                                    <button @click="removeCoachAssignment(assignment.id)" class="btn btn-sm btn-danger">
+                                        Remove
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Unassigned Archers Section -->
+                    <div class="management-section">
+                        <h3>Unassigned Archers</h3>
+                        <button @click="loadUnassignedArchers" class="btn btn-primary">🔄 Refresh List</button>
+                        
+                        <div v-if="unassignedArchersLoading" class="loading">Loading unassigned archers...</div>
+                        <div v-else-if="unassignedArchers.length === 0" class="no-data">
+                            <p>All archers are currently assigned to coaches.</p>
+                        </div>
+                        <div v-else class="table-container">
+                            <table class="assignment-table">
+                                <thead>
+                                    <tr>
+                                        <th>Archer Name</th>
+                                        <th>Email</th>
+                                        <th>Date Joined</th>
+                                        <th>Assign Coach</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="archer in unassignedArchers" :key="archer.id">
+                                        <td><strong><a href="#" @click.prevent="viewArcherProfilePage(archer)" class="archer-name-link">{{ getArcherName(archer) }}</a></strong></td>
+                                        <td>{{ archer.user?.email || 'No email' }}</td>
+                                        <td>
+                                            <span v-if="archer.dateJoined">{{ formatDate(archer.dateJoined) }}</span>
+                                            <span v-else class="text-muted">Not specified</span>
+                                        </td>
+                                        <td>
+                                            <select v-model="selectedCoaches[archer.id]" class="form-select coach-dropdown">
+                                                <option value="">Select a coach...</option>
+                                                <option v-for="coach in availableCoaches" :key="coach.id" :value="coach.id">
+                                                    {{ getCoachDisplayName(coach) }}
+                                                </option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <button @click="assignCoachToArcher(archer.id, selectedCoaches[archer.id])" :disabled="!selectedCoaches[archer.id]" class="btn btn-sm btn-success">
+                                                💾 Assign
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Sessions Tab (Coach/Archer) -->
-                <div v-if="activeTab === 'sessions'" class="tab-content">
-                    <h2>{{ isCoach() ? 'Manage Sessions' : 'My Sessions' }}</h2>
-                    <div class="sessions-content">
-                        <p>{{ isCoach() ? 'Session management' : 'Session tracking' }} features coming soon...</p>
-                        <div class="placeholder-content">
-                            <div class="session-card" v-for="i in 3" :key="i">
-                                <div class="session-header">
-                                    <h4>Training Session {{ i }}</h4>
-                                    <span class="session-date">{{ getDateString(i) }}</span>
+                <!-- Archers Tab (Coach only) -->
+                <div v-if="activeTab === 'archers' && isCoach()" class="tab-content">
+                    <h2>My Assigned Archers</h2>
+                    
+                    <div class="management-section">
+                        <button @click="loadMyArchers" class="btn btn-primary">🔄 Refresh My Archers</button>
+                        
+                        <div v-if="myArchersLoading" class="loading">Loading your assigned archers...</div>
+                        <div v-else-if="myArchers.length === 0" class="no-data">
+                            <p>No archers assigned to you yet.</p>
+                        </div>
+                        <div v-else class="archers-grid">
+                            <div v-for="archer in myArchers" :key="archer.id" class="archer-card">
+                                <button @click="removeMyArcherAssignment(archer.id)" class="remove-assignment-btn" title="Remove assignment">&times;</button>
+                                <div class="archer-profile-section">
+                                    <div class="archer-avatar">
+                                        <div class="avatar-placeholder">
+                                            <img src="https://picsum.photos/60" alt="Archer Profile" class="avatar-img">
+                                        </div>
+                                    </div>
+                                    <div class="archer-info">
+                                        <div class="archer-header">
+                                            <h4>{{ getArcherName(archer) }}</h4>
+                                            <button @click="viewArcherProfile(archer)" class="btn btn-sm btn-outline view-profile-btn">View Profile</button>
+                                        </div>
+                                        <div class="archer-details">
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="session-details">
-                                    <p><strong>Duration:</strong> 2 hours</p>
-                                    <p><strong>Focus:</strong> Accuracy training</p>
-                                    <p v-if="isArcher()"><strong>Score:</strong> 8.{{ i + 2 }}/10</p>
+                                <div class="archer-actions">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Available Archers Section -->
+                    <div class="management-section">
+                        <h3>Available Archers (Unassigned)</h3>
+                        <button @click="loadUnassignedArchers" class="btn btn-primary">🔄 Refresh List</button>
+                        
+                        <div v-if="unassignedArchersLoading" class="loading">Loading available archers...</div>
+                        <div v-else-if="unassignedArchers.length === 0" class="no-data">
+                            <p>No unassigned archers available.</p>
+                        </div>
+                        <div v-else class="archers-grid">
+                            <div v-for="archer in unassignedArchers" :key="archer.id" class="archer-card available">
+                                <div class="archer-profile-section">
+                                    <div class="archer-avatar">
+                                        <div class="avatar-placeholder">
+                                            <img src="https://picsum.photos/60" alt="Archer Profile" class="avatar-img">
+                                        </div>
+                                    </div>
+                                    <div class="archer-info">
+                                        <div class="archer-header">
+                                            <h4>{{ getArcherName(archer) }}</h4>
+                                        </div>
+                                        <div class="archer-details">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="archer-actions">
+                                    <button @click="viewArcherProfile(archer)" class="btn btn-sm btn-outline">View Profile</button>
+                                    <button @click="assignArcherToMe(archer.id)" class="btn btn-sm btn-success">Assign to Me</button>
                                 </div>
                             </div>
                         </div>
@@ -207,44 +414,1585 @@
                 <!-- Profile Tab -->
                 <div v-if="activeTab === 'profile'" class="tab-content">
                     <h2>My Profile</h2>
-                    <div class="profile-content">
-                        <div class="profile-info">
-                            <div class="profile-avatar">
-                                <span class="avatar-placeholder">{{ getInitials() }}</span>
-                            </div>
-                            <div class="profile-details">
-                                <h3>{{ getUserDisplayName() }}</h3>
-                                <p class="profile-email">{{ userInfo.email }}</p>
-                                <div class="profile-role">
-                                    <span class="role-badge" :class="userInfo?.role ? 'badge-' + userInfo.role.toLowerCase() : ''">
-                                        {{ getRoleIcon(userInfo?.role) }} {{ userInfo?.role || 'User' }}
-                                    </span>
+                    
+                    <!-- Profile loading state -->
+                    <div v-if="profileLoading" class="loading">Loading profile...</div>
+                    
+                    <!-- Profile not found message -->
+                    <div v-else-if="!profile && !showCreateProfileForm" class="profile-not-found">
+                        <div class="no-profile-message">
+                            <h3>No Profile Found</h3>
+                            <p>You don't have a profile yet. Create one to manage your personal information.</p>
+                            <button @click="showCreateProfileForm = true" class="btn btn-primary">Create Profile</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Profile display -->
+                    <div v-else-if="profile && !editingProfile" class="profile-content">
+                        <div class="profile-header">
+                            <div class="profile-header-content">
+                                <div class="profile-image-section">
+                                    <div class="profile-image-placeholder">
+                                        <img src="https://picsum.photos/600" alt="Profile" class="profile-avatar-img">
+                                    </div>
                                 </div>
-                                
-                                <div v-if="profile" class="profile-meta">
-                                    <p><strong>Member Since:</strong> {{ formatDate(profile.dateJoined) }}</p>
-                                    <p v-if="profile.firstName"><strong>Full Name:</strong> {{ profile.firstName }} {{ profile.lastName }}</p>
+                                <div class="profile-header-text">
+                                    <h3>{{ getFullName() }}</h3>
+                                    <p class="profile-name">{{ userInfo.email }}</p>
+                                </div>
+                            </div>
+                            <button @click="editProfile" class="btn btn-secondary">Edit Profile</button>
+                        </div>
+                        
+                        <div class="profile-sections">
+                            <!-- Basic Information -->
+                            <div class="profile-section">
+                                <h4>Basic Information</h4>
+                                <div class="profile-grid">
+                                    <div class="profile-field">
+                                        <label>Email:</label>
+                                        <span>{{ userInfo.email }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Role:</label>
+                                        <span>{{ userInfo?.role || 'User' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>First Name:</label>
+                                        <span>{{ profile.firstName || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Last Name:</label>
+                                        <span>{{ profile.lastName || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Suffix:</label>
+                                        <span>{{ profile.suffix || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Date of Birth:</label>
+                                        <span>{{ profile.dob ? formatDate(profile.dob) : 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Gender:</label>
+                                        <span>{{ profile.gender || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Phone:</label>
+                                        <span>{{ profile.phone || 'Not set' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Address Information -->
+                            <div class="profile-section">
+                                <h4>Address Information</h4>
+                                <div class="profile-grid">
+                                    <div class="profile-field full-width">
+                                        <label>Address:</label>
+                                        <span>{{ profile.address || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>City:</label>
+                                        <span>{{ profile.city || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Postal Code:</label>
+                                        <span>{{ profile.postalCode || 'Not set' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- School Information -->
+                            <div class="profile-section">
+                                <h4>School Information</h4>
+                                <div class="profile-grid">
+                                    <div class="profile-field">
+                                        <label>School Name:</label>
+                                        <span>{{ profile.schoolName || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field full-width">
+                                        <label>School Address:</label>
+                                        <span>{{ profile.schoolAddress || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>School Head:</label>
+                                        <span>{{ profile.schoolHead || 'Not set' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Physical Information -->
+                            <div class="profile-section">
+                                <h4>Physical Information</h4>
+                                <div class="profile-grid">
+                                    <div class="profile-field">
+                                        <label>Height:</label>
+                                        <span>{{ profile.heightCm ? profile.heightCm + ' cm' : 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Weight:</label>
+                                        <span>{{ profile.weightKg ? profile.weightKg + ' kg' : 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Blood Type:</label>
+                                        <span>{{ profile.bloodType || 'Not set' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Emergency Contact -->
+                            <div class="profile-section">
+                                <h4>Emergency Contact</h4>
+                                <div class="profile-grid">
+                                    <div class="profile-field">
+                                        <label>Contact Name:</label>
+                                        <span>{{ profile.emergencyContact || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Relation:</label>
+                                        <span>{{ profile.contactRelation || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Contact Phone:</label>
+                                        <span>{{ profile.contactPhone || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Contact Email:</label>
+                                        <span>{{ profile.contactEmail || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field full-width">
+                                        <label>Contact Address:</label>
+                                        <span>{{ profile.contactAddress || 'Not set' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Club Information -->
+                            <div class="profile-section">
+                                <h4>Club Information</h4>
+                                <div class="profile-grid">
+                                    <div class="profile-field">
+                                        <label>Date Joined:</label>
+                                        <span>{{ profile.dateJoined ? formatDate(profile.dateJoined) : 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field" v-if="isArcher() && profile.coachId">
+                                        <label>Assigned Coach:</label>
+                                        <span>{{ getCoachName(profile.coachId) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Profile Edit Form -->
+                    <div v-if="editingProfile || showCreateProfileForm" class="profile-edit-form">
+                        <h3>{{ showCreateProfileForm ? 'Create Profile' : 'Edit Profile' }}</h3>
+                        <form @submit.prevent="saveProfile">
+                            <!-- Basic Information -->
+                            <div class="form-section">
+                                <h4>Basic Information</h4>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="firstName">First Name:</label>
+                                        <input type="text" id="firstName" v-model="profileForm.firstName" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="lastName">Last Name:</label>
+                                        <input type="text" id="lastName" v-model="profileForm.lastName" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="suffix">Suffix:</label>
+                                        <input type="text" id="suffix" v-model="profileForm.suffix" class="form-control" placeholder="Jr., Sr., III, etc.">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="dob">Date of Birth:</label>
+                                        <input type="date" id="dob" v-model="profileForm.dob" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="gender">Gender:</label>
+                                        <select id="gender" v-model="profileForm.gender" class="form-control">
+                                            <option value="">Select Gender</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                            <option value="Other">Other</option>
+                                            <option value="Prefer not to say">Prefer not to say</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="phone">Phone Number:</label>
+                                        <input type="tel" id="phone" v-model="profileForm.phone" class="form-control" placeholder="+1234567890">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Address Information -->
+                            <div class="form-section">
+                                <h4>Address Information</h4>
+                                <div class="form-grid">
+                                    <div class="form-group full-width">
+                                        <label for="address">Address:</label>
+                                        <textarea id="address" v-model="profileForm.address" class="form-control" rows="2" placeholder="123 Main St, Apt 4B"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="city">City:</label>
+                                        <input type="text" id="city" v-model="profileForm.city" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="postalCode">Postal Code:</label>
+                                        <input type="text" id="postalCode" v-model="profileForm.postalCode" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- School Information -->
+                            <div class="form-section">
+                                <h4>School Information</h4>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="schoolName">School Name:</label>
+                                        <input type="text" id="schoolName" v-model="profileForm.schoolName" class="form-control">
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label for="schoolAddress">School Address:</label>
+                                        <textarea id="schoolAddress" v-model="profileForm.schoolAddress" class="form-control" rows="2"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="schoolHead">School Head/Principal:</label>
+                                        <input type="text" id="schoolHead" v-model="profileForm.schoolHead" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Physical Information -->
+                            <div class="form-section">
+                                <h4>Physical Information</h4>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="heightCm">Height (cm):</label>
+                                        <input type="number" id="heightCm" v-model="profileForm.heightCm" class="form-control" min="0" max="300">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="weightKg">Weight (kg):</label>
+                                        <input type="number" id="weightKg" v-model="profileForm.weightKg" class="form-control" min="0" max="500" step="0.1">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="bloodType">Blood Type:</label>
+                                        <select id="bloodType" v-model="profileForm.bloodType" class="form-control">
+                                            <option value="">Select Blood Type</option>
+                                            <option value="A+">A+</option>
+                                            <option value="A-">A-</option>
+                                            <option value="B+">B+</option>
+                                            <option value="B-">B-</option>
+                                            <option value="AB+">AB+</option>
+                                            <option value="AB-">AB-</option>
+                                            <option value="O+">O+</option>
+                                            <option value="O-">O-</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Emergency Contact -->
+                            <div class="form-section">
+                                <h4>Emergency Contact</h4>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="emergencyContact">Contact Name:</label>
+                                        <input type="text" id="emergencyContact" v-model="profileForm.emergencyContact" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="contactRelation">Relation:</label>
+                                        <select id="contactRelation" v-model="profileForm.contactRelation" class="form-control">
+                                            <option value="">Select Relation</option>
+                                            <option value="Parent">Parent</option>
+                                            <option value="Mother">Mother</option>
+                                            <option value="Father">Father</option>
+                                            <option value="Guardian">Guardian</option>
+                                            <option value="Sibling">Sibling</option>
+                                            <option value="Spouse">Spouse</option>
+                                            <option value="Friend">Friend</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="contactPhone">Contact Phone:</label>
+                                        <input type="tel" id="contactPhone" v-model="profileForm.contactPhone" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="contactEmail">Contact Email:</label>
+                                        <input type="email" id="contactEmail" v-model="profileForm.contactEmail" class="form-control">
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label for="contactAddress">Contact Address:</label>
+                                        <textarea id="contactAddress" v-model="profileForm.contactAddress" class="form-control" rows="2"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Club Information -->
+                            <div class="form-section">
+                                <h4>Club Information</h4>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="dateJoined">Date Joined:</label>
+                                        <input type="date" id="dateJoined" v-model="profileForm.dateJoined" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="button" @click="cancelProfileEdit" class="btn btn-secondary">Cancel</button>
+                                <button type="submit" class="btn btn-primary">{{ showCreateProfileForm ? 'Create Profile' : 'Save Changes' }}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Archer Profile Page -->
+                <div v-if="activeTab === 'archer-profile' && showArcherProfile && archerProfileData" class="tab-content">
+                    <div class="profile-navigation">
+                        <button @click="returnToAssignments" class="btn btn-secondary back-btn">
+                            ← Back to {{ previousTab === 'assignments' ? 'Assignments' : (previousTab === 'archers' ? 'My Archers' : 'Dashboard') }}
+                        </button>
+                    </div>
+                    
+                    <h2>Archer Profile</h2>
+                    
+                    <!-- Profile display for selected archer -->
+                    <div class="profile-content">
+                        <div class="profile-header">
+                            <div class="profile-header-content">
+                                <div class="profile-image-section">
+                                    <div class="profile-image-placeholder">
+                                        <img src="https://picsum.photos/600" alt="Profile" class="profile-avatar-img">
+                                    </div>
+                                </div>
+                                <div class="profile-header-text">
+                                    <h3>{{ getArcherName(archerProfileData) }}</h3>
+                                    <p class="profile-name">{{ archerProfileData.user?.email || 'Email not provided' }}</p>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="profile-actions">
-                            <button @click="editProfile" class="action-btn">✏️ Edit Profile</button>
-                            <button @click="changePassword" class="action-btn">🔒 Change Password</button>
+                        <div class="profile-sections">
+                            <!-- Basic Information -->
+                            <div class="profile-section">
+                                <h4>Basic Information</h4>
+                                <div class="profile-grid">
+                                    <div class="profile-field">
+                                        <label>Email:</label>
+                                        <span>{{ archerProfileData.user?.email || 'Not provided' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Role:</label>
+                                        <span>{{ archerProfileData.user?.role || 'Archer' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>First Name:</label>
+                                        <span>{{ archerProfileData.firstName || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Last Name:</label>
+                                        <span>{{ archerProfileData.lastName || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Suffix:</label>
+                                        <span>{{ archerProfileData.suffix || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Date of Birth:</label>
+                                        <span>{{ archerProfileData.dob ? formatDate(archerProfileData.dob) : 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Age:</label>
+                                        <span>{{ calculateAge(archerProfileData.dob) }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Gender:</label>
+                                        <span>{{ archerProfileData.gender || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Phone:</label>
+                                        <span>{{ archerProfileData.phone || 'Not set' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Address Information -->
+                            <div class="profile-section">
+                                <h4>Address Information</h4>
+                                <div class="profile-grid">
+                                    <div class="profile-field full-width">
+                                        <label>Address:</label>
+                                        <span>{{ archerProfileData.address || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>City:</label>
+                                        <span>{{ archerProfileData.city || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Postal Code:</label>
+                                        <span>{{ archerProfileData.postalCode || 'Not set' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- School Information -->
+                            <div class="profile-section">
+                                <h4>School Information</h4>
+                                <div class="profile-grid">
+                                    <div class="profile-field">
+                                        <label>School Name:</label>
+                                        <span>{{ archerProfileData.schoolName || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field full-width">
+                                        <label>School Address:</label>
+                                        <span>{{ archerProfileData.schoolAddress || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>School Head:</label>
+                                        <span>{{ archerProfileData.schoolHead || 'Not set' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Physical Information -->
+                            <div class="profile-section">
+                                <h4>Physical Information</h4>
+                                <div class="profile-grid">
+                                    <div class="profile-field">
+                                        <label>Height:</label>
+                                        <span>{{ archerProfileData.heightCm ? archerProfileData.heightCm + ' cm' : 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Weight:</label>
+                                        <span>{{ archerProfileData.weightKg ? archerProfileData.weightKg + ' kg' : 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Blood Type:</label>
+                                        <span>{{ archerProfileData.bloodType || 'Not set' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Emergency Contact -->
+                            <div class="profile-section">
+                                <h4>Emergency Contact</h4>
+                                <div class="profile-grid">
+                                    <div class="profile-field">
+                                        <label>Contact Name:</label>
+                                        <span>{{ archerProfileData.emergencyContact || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Relation:</label>
+                                        <span>{{ archerProfileData.contactRelation || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Contact Phone:</label>
+                                        <span>{{ archerProfileData.contactPhone || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Contact Email:</label>
+                                        <span>{{ archerProfileData.contactEmail || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field full-width">
+                                        <label>Contact Address:</label>
+                                        <span>{{ archerProfileData.contactAddress || 'Not set' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Club Information -->
+                            <div class="profile-section">
+                                <h4>Club Information</h4>
+                                <div class="profile-grid">
+                                    <div class="profile-field">
+                                        <label>Date Joined:</label>
+                                        <span>{{ archerProfileData.dateJoined ? formatDate(archerProfileData.dateJoined) : 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field" v-if="archerProfileData.coachId">
+                                        <label>Assigned Coach:</label>
+                                        <span>{{ getCoachName(archerProfileData.coachId) }}</span>
+                                    </div>
+                                    <div class="profile-field" v-if="archerProfileData.coachAssignedDate">
+                                        <label>Coach Assigned Date:</label>
+                                        <span>{{ formatDate(archerProfileData.coachAssignedDate) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coach Profile Page -->
+                <div v-if="activeTab === 'coach-profile' && showCoachProfile && coachProfileData" class="tab-content">
+                    <div class="profile-navigation">
+                        <button @click="returnToAssignments" class="btn btn-secondary back-btn">
+                            ← Back to {{ previousTab === 'assignments' ? 'Assignments' : (previousTab === 'archers' ? 'My Archers' : 'Dashboard') }}
+                        </button>
+                    </div>
+                    
+                    <h2>Coach Profile</h2>
+                    
+                    <!-- Profile display for selected coach -->
+                    <div class="profile-content">
+                        <div class="profile-header">
+                            <div class="profile-header-content">
+                                <div class="profile-image-section">
+                                    <div class="profile-image-placeholder">
+                                        <img src="https://picsum.photos/600" alt="Profile" class="profile-avatar-img">
+                                    </div>
+                                </div>
+                                <div class="profile-header-text">
+                                    <h3>{{ getCoachDisplayName({ profile: coachProfileData, email: coachProfileData.user?.email }) }}</h3>
+                                    <p class="profile-name">{{ coachProfileData.user?.email || 'Email not provided' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="profile-sections">
+                            <!-- Basic Information -->
+                            <div class="profile-section">
+                                <h4>Basic Information</h4>
+                                <div class="profile-grid">
+                                    <div class="profile-field">
+                                        <label>Email:</label>
+                                        <span>{{ coachProfileData.user?.email || 'Not provided' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Role:</label>
+                                        <span>{{ coachProfileData.user?.role || 'Coach' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>First Name:</label>
+                                        <span>{{ coachProfileData.firstName || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Last Name:</label>
+                                        <span>{{ coachProfileData.lastName || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Suffix:</label>
+                                        <span>{{ coachProfileData.suffix || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Date of Birth:</label>
+                                        <span>{{ coachProfileData.dob ? formatDate(coachProfileData.dob) : 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Age:</label>
+                                        <span>{{ calculateAge(coachProfileData.dob) }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Gender:</label>
+                                        <span>{{ coachProfileData.gender || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Phone:</label>
+                                        <span>{{ coachProfileData.phone || 'Not set' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Address Information -->
+                            <div class="profile-section">
+                                <h4>Address Information</h4>
+                                <div class="profile-grid">
+                                    <div class="profile-field full-width">
+                                        <label>Address:</label>
+                                        <span>{{ coachProfileData.address || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>City:</label>
+                                        <span>{{ coachProfileData.city || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Postal Code:</label>
+                                        <span>{{ coachProfileData.postalCode || 'Not set' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- School Information -->
+                            <div class="profile-section">
+                                <h4>School Information</h4>
+                                <div class="profile-grid">
+                                    <div class="profile-field">
+                                        <label>School Name:</label>
+                                        <span>{{ coachProfileData.schoolName || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field full-width">
+                                        <label>School Address:</label>
+                                        <span>{{ coachProfileData.schoolAddress || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>School Head:</label>
+                                        <span>{{ coachProfileData.schoolHead || 'Not set' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Physical Information -->
+                            <div class="profile-section">
+                                <h4>Physical Information</h4>
+                                <div class="profile-grid">
+                                    <div class="profile-field">
+                                        <label>Height:</label>
+                                        <span>{{ coachProfileData.heightCm ? coachProfileData.heightCm + ' cm' : 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Weight:</label>
+                                        <span>{{ coachProfileData.weightKg ? coachProfileData.weightKg + ' kg' : 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Blood Type:</label>
+                                        <span>{{ coachProfileData.bloodType || 'Not set' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Emergency Contact -->
+                            <div class="profile-section">
+                                <h4>Emergency Contact</h4>
+                                <div class="profile-grid">
+                                    <div class="profile-field">
+                                        <label>Contact Name:</label>
+                                        <span>{{ coachProfileData.emergencyContact || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Relation:</label>
+                                        <span>{{ coachProfileData.contactRelation || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Contact Phone:</label>
+                                        <span>{{ coachProfileData.contactPhone || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Contact Email:</label>
+                                        <span>{{ coachProfileData.contactEmail || 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field full-width">
+                                        <label>Contact Address:</label>
+                                        <span>{{ coachProfileData.contactAddress || 'Not set' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Club Information -->
+                            <div class="profile-section">
+                                <h4>Club Information</h4>
+                                <div class="profile-grid">
+                                    <div class="profile-field">
+                                        <label>Date Joined:</label>
+                                        <span>{{ coachProfileData.dateJoined ? formatDate(coachProfileData.dateJoined) : 'Not set' }}</span>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Coaching Since:</label>
+                                        <span>{{ coachProfileData.coachingSince ? formatDate(coachProfileData.coachingSince) : 'Not set' }}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </main>
         </div>
         
-        <!-- Unauthorized Access -->
+        <!-- Not authenticated -->
         <div v-else class="unauthorized">
             <h2>Access Denied</h2>
-            <p>You need to be logged in to access this dashboard.</p>
+            <p>Please log in to access the dashboard.</p>
             <button @click="redirectToLogin" class="btn btn-primary">Go to Login</button>
+        </div>
+
+        <!-- Archer Profile Modal -->
+        <div v-if="showArcherProfileModal" class="modal-overlay" @click.self="closeArcherProfileModal">
+            <div class="modal-content archer-profile-modal">
+                <div class="modal-header">
+                    <h3>Hi!, I'm Archer</h3>
+                    <button @click="closeArcherProfileModal" class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body" v-if="selectedArcher">
+                    <div class="archer-id-card">
+                        <div class="archer-id-image">
+                            <div class="archer-id-image-placeholder">
+                                <img src="https://picsum.photos/200" alt="Profile" class="archer-profile-img">
+                            </div>
+                        </div>
+                        <div class="archer-id-info">
+                            <h3 class="archer-primary-name">{{ getArcherName(selectedArcher) }}</h3>
+                            <p class="archer-small-email">📧 {{ selectedArcher.user?.email || 'Email not provided' }}</p>
+                            <p class="archer-phone">📞 {{ selectedArcher.phone || 'Phone not provided' }}</p>
+                            <p class="archer-city">📍 {{ selectedArcher.city || 'City not provided' }}</p>
+                            <p class="archer-age">🎂 Age: {{ calculateAge(selectedArcher.dob) }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create User Modal -->
+        <div v-if="showCreateForm" class="modal-overlay" @click.self="showCreateForm = false">
+            <div class="modal-content create-user-modal">
+                <h3>Create New User</h3>
+                <form @submit.prevent="createUser">
+                    <!-- User Information -->
+                    <div class="form-section">
+                        <h4>User Account</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="newUserEmail">Email: *</label>
+                                <input type="email" id="newUserEmail" v-model="newUser.email" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="newUserPassword">Password: *</label>
+                                <input type="password" id="newUserPassword" v-model="newUser.password" class="form-control" required minlength="6">
+                            </div>
+                            <div class="form-group">
+                                <label for="newUserRole">Role: *</label>
+                                <select id="newUserRole" v-model="newUser.role" class="form-control" required>
+                                    <option value="ARCHER">Archer</option>
+                                    <option value="COACH">Coach</option>
+                                    <option value="ADMIN">Admin</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Profile Information -->
+                    <div class="form-section">
+                        <h4>Profile Information (Optional)</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="newUserFirstName">First Name:</label>
+                                <input type="text" id="newUserFirstName" v-model="newUser.firstName" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="newUserLastName">Last Name:</label>
+                                <input type="text" id="newUserLastName" v-model="newUser.lastName" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="newUserSuffix">Suffix:</label>
+                                <input type="text" id="newUserSuffix" v-model="newUser.suffix" class="form-control" placeholder="Jr., Sr., III, etc.">
+                            </div>
+                            <div class="form-group">
+                                <label for="newUserDob">Date of Birth:</label>
+                                <input type="date" id="newUserDob" v-model="newUser.dob" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="newUserGender">Gender:</label>
+                                <select id="newUserGender" v-model="newUser.gender" class="form-control">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                    <option value="Prefer not to say">Prefer not to say</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="newUserPhone">Phone Number:</label>
+                                <input type="tel" id="newUserPhone" v-model="newUser.phone" class="form-control" placeholder="+1234567890">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Contact Information -->
+                    <div class="form-section">
+                        <h4>Contact Information (Optional)</h4>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label for="newUserAddress">Address:</label>
+                                <textarea id="newUserAddress" v-model="newUser.address" class="form-control" rows="2" placeholder="123 Main St, Apt 4B"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="newUserCity">City:</label>
+                                <input type="text" id="newUserCity" v-model="newUser.city" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="newUserPostalCode">Postal Code:</label>
+                                <input type="text" id="newUserPostalCode" v-model="newUser.postalCode" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Emergency Contact -->
+                    <div class="form-section">
+                        <h4>Emergency Contact (Optional)</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="newUserEmergencyContact">Contact Name:</label>
+                                <input type="text" id="newUserEmergencyContact" v-model="newUser.emergencyContact" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="newUserContactRelation">Relation:</label>
+                                <select id="newUserContactRelation" v-model="newUser.contactRelation" class="form-control">
+                                    <option value="">Select Relation</option>
+                                    <option value="Parent">Parent</option>
+                                    <option value="Mother">Mother</option>
+                                    <option value="Father">Father</option>
+                                    <option value="Guardian">Guardian</option>
+                                    <option value="Sibling">Sibling</option>
+                                    <option value="Spouse">Spouse</option>
+                                    <option value="Friend">Friend</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="newUserContactPhone">Contact Phone:</label>
+                                <input type="tel" id="newUserContactPhone" v-model="newUser.contactPhone" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="newUserContactEmail">Contact Email:</label>
+                                <input type="email" id="newUserContactEmail" v-model="newUser.contactEmail" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Club Information -->
+                    <div class="form-section">
+                        <h4>Club Information (Optional)</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="newUserDateJoined">Date Joined:</label>
+                                <input type="date" id="newUserDateJoined" v-model="newUser.dateJoined" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" @click="cancelCreateUser" class="btn btn-secondary">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create User</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
-    <script src="js/dashboard.js"></script>
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    isLoading: true,
+                    isAuthenticated: false,
+                    userInfo: null,
+                    activeTab: 'overview',
+                    users: [],
+                    usersLoading: false,
+                    showCreateForm: false,
+                    totalUsers: 0,
+                    totalCoaches: 0,
+                    totalArchers: 0,
+                    newUser: {
+                        email: '',
+                        password: '',
+                        role: 'ARCHER',
+                        isActive: true,
+                        // Profile fields
+                        firstName: '',
+                        lastName: '',
+                        suffix: '',
+                        dob: '',
+                        gender: '',
+                        phone: '',
+                        address: '',
+                        city: '',
+                        postalCode: '',
+                        emergencyContact: '',
+                        contactRelation: '',
+                        contactPhone: '',
+                        contactEmail: '',
+                        dateJoined: ''
+                    },
+                    // Assignment-related data
+                    allAssignments: [],
+                    currentAssignments: [],
+                    unassignedArchers: [],
+                    myArchers: [],
+                    availableCoaches: [],
+                    assignmentsLoading: false,
+                    unassignedArchersLoading: false,
+                    myArchersLoading: false,
+                    newCoachSelections: {},
+                    selectedCoaches: {},
+                    // Profile-related data
+                    profile: null,
+                    userProfile: null,
+                    profileLoading: false,
+                    editingProfile: false,
+                    showCreateProfileForm: false,
+                    showArcherProfileModal: false,
+                    selectedArcher: null,
+                    showArcherProfile: false,
+                    archerProfileData: null,
+                    showCoachProfile: false,
+                    coachProfileData: null,
+                    previousTab: null,
+                    profileForm: {
+                        firstName: '',
+                        lastName: '',
+                        suffix: '',
+                        dob: '',
+                        gender: '',
+                        phone: '',
+                        address: '',
+                        city: '',
+                        postalCode: '',
+                        schoolName: '',
+                        schoolAddress: '',
+                        schoolHead: '',
+                        heightCm: null,
+                        weightKg: null,
+                        bloodType: '',
+                        emergencyContact: '',
+                        contactRelation: '',
+                        contactPhone: '',
+                        contactEmail: '',
+                        contactAddress: '',
+                        dateJoined: ''
+                    }
+                };
+            },
+
+            async mounted() {
+                await this.checkAuth();
+                if (this.isAuthenticated) {
+                    await this.loadDashboardData();
+                }
+            },
+
+            methods: {
+                async checkAuth() {
+                    try {
+                        const token = localStorage.getItem('auth_token');
+                        
+                        if (!token) {
+                            this.redirectToLogin();
+                            return;
+                        }
+
+                        const response = await fetch('http://localhost:3000/auth/profile', {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+
+                        if (response.ok) {
+                            const apiResponse = await response.json();
+                            this.userInfo = apiResponse.user || apiResponse;
+                            this.isAuthenticated = true;
+                        } else {
+                            localStorage.removeItem('auth_token');
+                            localStorage.removeItem('user_info');
+                            this.redirectToLogin();
+                        }
+                    } catch (error) {
+                        console.error('Auth check error:', error);
+                        this.redirectToLogin();
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async loadDashboardData() {
+                    if (this.isAdmin()) {
+                        await this.loadUsers();
+                        await this.loadAllAssignments();
+                        await this.loadUnassignedArchers();
+                    } else if (this.isCoach()) {
+                        await this.loadMyArchers();
+                        await this.loadUnassignedArchers();
+                    }
+                    // Load profile for all users
+                    await this.loadProfile();
+                },
+
+                async loadUsers() {
+                    try {
+                        this.usersLoading = true;
+                        const token = localStorage.getItem('auth_token');
+                        const response = await fetch('http://localhost:3000/users?includeInactive=true&includeProfile=true', {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+
+                        if (response.ok) {
+                            const users = await response.json();
+                            this.users = users;
+                            this.totalUsers = users.length;
+                            this.totalCoaches = users.filter(u => u.role === 'COACH' && u.isActive).length;
+                            this.totalArchers = users.filter(u => u.role === 'ARCHER' && u.isActive).length;
+                        }
+                    } catch (error) {
+                        console.error('Error loading users:', error);
+                    } finally {
+                        this.usersLoading = false;
+                    }
+                },
+
+                async createUser() {
+                    try {
+                        const token = localStorage.getItem('auth_token');
+                        const response = await fetch('http://localhost:3000/users/create-with-profile', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(this.newUser)
+                        });
+
+                        if (response.ok) {
+                            const result = await response.json();
+                            this.resetNewUserForm();
+                            this.showCreateForm = false;
+                            await this.loadUsers();
+                            
+                            const profileCreated = result.profile ? ' with profile' : '';
+                            alert(`User created successfully${profileCreated}!`);
+                        } else {
+                            const errorData = await response.json();
+                            alert('Error creating user: ' + (errorData.message || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        console.error('Error creating user:', error);
+                        alert('Failed to create user: ' + error.message);
+                    }
+                },
+
+                cancelCreateUser() {
+                    this.showCreateForm = false;
+                    this.resetNewUserForm();
+                },
+
+                resetNewUserForm() {
+                    this.newUser = {
+                        email: '',
+                        password: '',
+                        role: 'ARCHER',
+                        isActive: true,
+                        // Profile fields
+                        firstName: '',
+                        lastName: '',
+                        suffix: '',
+                        dob: '',
+                        gender: '',
+                        phone: '',
+                        address: '',
+                        city: '',
+                        postalCode: '',
+                        emergencyContact: '',
+                        contactRelation: '',
+                        contactPhone: '',
+                        contactEmail: '',
+                        dateJoined: ''
+                    };
+                },
+
+                editUser(user) {
+                    alert(`Edit user feature coming soon for: ${user.email}`);
+                },
+
+                async deleteUser(user) {
+                    if (confirm(`Delete user ${user.email}?`)) {
+                        try {
+                            const token = localStorage.getItem('auth_token');
+                            const response = await fetch(`http://localhost:3000/users/${user.id}`, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+
+                            if (response.ok) {
+                                await this.loadUsers();
+                                alert('User deleted successfully!');
+                            }
+                        } catch (error) {
+                            console.error('Error deleting user:', error);
+                            alert('Failed to delete user');
+                        }
+                    }
+                },
+
+                // Assignment Management Methods
+                async loadAllAssignments() {
+                    try {
+                        this.assignmentsLoading = true;
+                        const token = localStorage.getItem('auth_token');
+                        const response = await fetch('http://localhost:3000/profiles/assigned-archers', {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+
+                        if (response.ok) {
+                            const assignments = await response.json();
+                            this.currentAssignments = assignments;
+                            this.allAssignments = assignments;
+                            await this.loadAvailableCoaches();
+                        }
+                    } catch (error) {
+                        console.error('Error loading assignments:', error);
+                    } finally {
+                        this.assignmentsLoading = false;
+                    }
+                },
+
+                async loadUnassignedArchers() {
+                    try {
+                        this.unassignedArchersLoading = true;
+                        const token = localStorage.getItem('auth_token');
+                        const response = await fetch('http://localhost:3000/profiles/unassigned-archers', {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+
+                        if (response.ok) {
+                            this.unassignedArchers = await response.json();
+                            if (this.isAdmin()) {
+                                await this.loadAvailableCoaches();
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error loading unassigned archers:', error);
+                    } finally {
+                        this.unassignedArchersLoading = false;
+                    }
+                },
+
+                async loadMyArchers() {
+                    try {
+                        this.myArchersLoading = true;
+                        const token = localStorage.getItem('auth_token');
+                        const response = await fetch('http://localhost:3000/auth/my-archers', {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+
+                        if (response.ok) {
+                            this.myArchers = await response.json();
+                        }
+                    } catch (error) {
+                        console.error('Error loading my archers:', error);
+                    } finally {
+                        this.myArchersLoading = false;
+                    }
+                },
+
+                async loadAvailableCoaches() {
+                    try {
+                        const token = localStorage.getItem('auth_token');
+                        const response = await fetch('http://localhost:3000/users?role=COACH&includeInactive=false&includeProfile=true', {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+
+                        if (response.ok) {
+                            this.availableCoaches = await response.json();
+                        }
+                    } catch (error) {
+                        console.error('Error loading coaches:', error);
+                    }
+                },
+
+                async assignCoachToArcher(archerId, coachId) {
+                    if (!coachId) {
+                        alert('Please select a coach first.');
+                        return;
+                    }
+
+                    try {
+                        const token = localStorage.getItem('auth_token');
+                        const response = await fetch('http://localhost:3000/profiles/assign-coach', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ profileId: archerId, coachId })
+                        });
+
+                        if (response.ok) {
+                            alert('Coach assigned successfully!');
+                            await this.loadUnassignedArchers();
+                            if (this.isAdmin()) {
+                                await this.loadAllAssignments();
+                            }
+                            // Clear selection
+                            this.selectedCoaches[archerId] = '';
+                        } else {
+                            alert('Failed to assign coach');
+                        }
+                    } catch (error) {
+                        console.error('Error assigning coach:', error);
+                        alert('Failed to assign coach');
+                    }
+                },
+
+                async assignArcherToMe(archerId) {
+                    try {
+                        const token = localStorage.getItem('auth_token');
+                        const response = await fetch('http://localhost:3000/profiles/coach-assign-archer', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ profileId: archerId })
+                        });
+
+                        if (response.ok) {
+                            alert('Archer assigned to you successfully!');
+                            await this.loadUnassignedArchers();
+                            await this.loadMyArchers();
+                        } else {
+                            alert('Failed to assign archer');
+                        }
+                    } catch (error) {
+                        console.error('Error assigning archer:', error);
+                        alert('Failed to assign archer');
+                    }
+                },
+
+                async reassignCoach(archerId, newCoachId) {
+                    if (!newCoachId) {
+                        alert('Please select a new coach first.');
+                        return;
+                    }
+
+                    try {
+                        const token = localStorage.getItem('auth_token');
+                        const response = await fetch('http://localhost:3000/profiles/assign-coach', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ profileId: archerId, coachId: newCoachId })
+                        });
+
+                        if (response.ok) {
+                            alert('Coach reassigned successfully!');
+                            await this.loadAllAssignments();
+                            // Clear selection
+                            this.newCoachSelections[archerId] = '';
+                        } else {
+                            alert('Failed to reassign coach');
+                        }
+                    } catch (error) {
+                        console.error('Error reassigning coach:', error);
+                        alert('Failed to reassign coach');
+                    }
+                },
+
+                async removeCoachAssignment(archerId) {
+                    if (confirm('Are you sure you want to remove this coach assignment?')) {
+                        try {
+                            const token = localStorage.getItem('auth_token');
+                            const response = await fetch('http://localhost:3000/profiles/remove-coach-assignment', {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${token}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ profileId: archerId })
+                            });
+
+                            if (response.ok) {
+                                alert('Coach assignment removed successfully!');
+                                await this.loadAllAssignments();
+                                await this.loadUnassignedArchers();
+                            } else {
+                                alert('Failed to remove assignment');
+                            }
+                        } catch (error) {
+                            console.error('Error removing assignment:', error);
+                            alert('Failed to remove assignment');
+                        }
+                    }
+                },
+
+                async removeMyArcherAssignment(archerId) {
+                    if (confirm('Are you sure you want to remove this archer assignment?')) {
+                        try {
+                            const token = localStorage.getItem('auth_token');
+                            const response = await fetch('http://localhost:3000/profiles/remove-coach-assignment', {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${token}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ profileId: archerId })
+                            });
+
+                            if (response.ok) {
+                                alert('Archer assignment removed successfully!');
+                                await this.loadMyArchers();
+                                await this.loadUnassignedArchers();
+                            } else {
+                                alert('Failed to remove assignment');
+                            }
+                        } catch (error) {
+                            console.error('Error removing assignment:', error);
+                            alert('Failed to remove assignment');
+                        }
+                    }
+                },
+
+                // Profile management methods
+                async loadProfile() {
+                    try {
+                        this.profileLoading = true;
+                        const token = localStorage.getItem('auth_token');
+                        const response = await fetch('http://localhost:3000/profiles/me', {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+
+                        if (response.ok) {
+                            this.profile = await response.json();
+                            this.userProfile = this.profile;
+                        } else if (response.status === 404) {
+                            // Profile not found - user can create one
+                            this.profile = null;
+                            this.userProfile = null;
+                        } else {
+                            console.error('Error loading profile:', response.statusText);
+                        }
+                    } catch (error) {
+                        console.error('Error loading profile:', error);
+                        this.profile = null;
+                    } finally {
+                        this.profileLoading = false;
+                    }
+                },
+
+                async saveProfile() {
+                    try {
+                        const token = localStorage.getItem('auth_token');
+                        const url = this.showCreateProfileForm ? 
+                            'http://localhost:3000/profiles' : 
+                            'http://localhost:3000/profiles/me';
+                        const method = this.showCreateProfileForm ? 'POST' : 'PATCH';
+
+                        // Prepare form data - remove empty strings and convert to proper types
+                        const formData = { ...this.profileForm };
+                        Object.keys(formData).forEach(key => {
+                            if (formData[key] === '' || formData[key] === null || formData[key] === undefined) {
+                                delete formData[key];
+                            } else if (key === 'heightCm' || key === 'weightKg') {
+                                formData[key] = parseFloat(formData[key]) || null;
+                            }
+                        });
+
+                        const response = await fetch(url, {
+                            method: method,
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(formData)
+                        });
+
+                        if (response.ok) {
+                            const savedProfile = await response.json();
+                            this.profile = savedProfile;
+                            this.editingProfile = false;
+                            this.showCreateProfileForm = false;
+                            alert(this.showCreateProfileForm ? 'Profile created successfully!' : 'Profile updated successfully!');
+                            
+                            // Update user info if name changed
+                            if (this.userInfo) {
+                                this.userInfo.profile = savedProfile;
+                            }
+                        } else {
+                            const errorData = await response.json();
+                            alert('Error saving profile: ' + (errorData.message || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        console.error('Error saving profile:', error);
+                        alert('Error saving profile: ' + error.message);
+                    }
+                },
+
+                editProfile() {
+                    // Populate form with current profile data
+                    if (this.profile) {
+                        Object.keys(this.profileForm).forEach(key => {
+                            this.profileForm[key] = this.profile[key] || '';
+                        });
+                        // Convert dates to proper format for input fields
+                        if (this.profile.dob) {
+                            this.profileForm.dob = this.profile.dob.split('T')[0];
+                        }
+                        if (this.profile.dateJoined) {
+                            this.profileForm.dateJoined = this.profile.dateJoined.split('T')[0];
+                        }
+                    }
+                    this.editingProfile = true;
+                },
+
+                cancelProfileEdit() {
+                    this.editingProfile = false;
+                    this.showCreateProfileForm = false;
+                    // Reset form
+                    Object.keys(this.profileForm).forEach(key => {
+                        this.profileForm[key] = key.includes('Cm') || key.includes('Kg') ? null : '';
+                    });
+                },
+
+                // Helper methods for assignments
+                getArcherName(archer) {
+                    if (archer.user?.firstName || archer.user?.lastName) {
+                        return `${archer.user.firstName || ''} ${archer.user.lastName || ''}`.trim();
+                    }
+                    return archer.user?.email || 'Unknown Archer';
+                },
+
+                getCoachName(coachId) {
+                    const coach = this.availableCoaches.find(c => c.id === coachId);
+                    return this.getCoachDisplayName(coach) || 'Unknown Coach';
+                },
+
+                getCoachDisplayName(coach) {
+                    if (!coach) return 'Unknown Coach';
+                    if (coach.profile?.firstName || coach.profile?.lastName) {
+                        return `${coach.profile.firstName || ''} ${coach.profile.lastName || ''}`.trim();
+                    }
+                    return coach.email || 'Unknown Coach';
+                },
+
+                viewArcherProfile(archer) {
+                    this.selectedArcher = archer;
+                    this.showArcherProfileModal = true;
+                },
+
+                viewArcherProfilePage(archer) {
+                    this.archerProfileData = archer;
+                    this.previousTab = this.activeTab;
+                    this.showArcherProfile = true;
+                    this.activeTab = 'archer-profile';
+                },
+
+                async viewCoachProfilePage(assignment) {
+                    // Find the coach data
+                    const coach = this.availableCoaches.find(c => c.id === assignment.coachId);
+                    if (coach && coach.profile) {
+                        this.coachProfileData = coach.profile;
+                        this.coachProfileData.user = coach; // Add user info
+                    } else {
+                        // Fetch coach profile if not in availableCoaches
+                        await this.fetchCoachProfile(assignment.coachId);
+                    }
+                    this.previousTab = this.activeTab;
+                    this.showCoachProfile = true;
+                    this.activeTab = 'coach-profile';
+                },
+
+                async fetchCoachProfile(coachId) {
+                    try {
+                        const token = localStorage.getItem('auth_token');
+                        const response = await fetch(`http://localhost:3000/profiles/${coachId}`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (response.ok) {
+                            this.coachProfileData = await response.json();
+                        }
+                    } catch (error) {
+                        console.error('Error fetching coach profile:', error);
+                    }
+                },
+
+                returnToAssignments() {
+                    this.showArcherProfile = false;
+                    this.showCoachProfile = false;
+                    this.activeTab = this.previousTab || 'assignments';
+                    this.archerProfileData = null;
+                    this.coachProfileData = null;
+                    this.previousTab = null;
+                },
+
+                closeArcherProfileModal() {
+                    this.showArcherProfileModal = false;
+                    this.selectedArcher = null;
+                },
+
+                isAdmin() {
+                    return this.userInfo?.role === 'ADMIN';
+                },
+
+                isCoach() {
+                    return this.userInfo?.role === 'COACH';
+                },
+
+                isArcher() {
+                    return this.userInfo?.role === 'ARCHER';
+                },
+
+                getUserDisplayName() {
+                    if (this.userInfo?.profile?.firstName) {
+                        return `${this.userInfo.profile.firstName} ${this.userInfo.profile.lastName || ''}`.trim();
+                    }
+                    return this.userInfo?.email || 'User';
+                },
+
+                getFullName() {
+                    if (!this.profile) return this.userInfo?.email || 'Name not set';
+                    
+                    const parts = [];
+                    if (this.profile.firstName) parts.push(this.profile.firstName);
+                    if (this.profile.lastName) parts.push(this.profile.lastName);
+                    if (this.profile.suffix) parts.push(this.profile.suffix);
+                    
+                    return parts.length > 0 ? parts.join(' ') : (this.userInfo?.email || 'Name not set');
+                },
+
+                calculateAge(dateOfBirth) {
+                    if (!dateOfBirth) return 'Age not available';
+                    
+                    const today = new Date();
+                    const birthDate = new Date(dateOfBirth);
+                    
+                    if (isNaN(birthDate.getTime())) return 'Invalid date';
+                    
+                    let age = today.getFullYear() - birthDate.getFullYear();
+                    const monthDiff = today.getMonth() - birthDate.getMonth();
+                    
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                        age--;
+                    }
+                    
+                    return age >= 0 ? age + ' years old' : 'Future date';
+                },
+
+                formatDate(dateString) {
+                    if (!dateString) return 'N/A';
+                    return new Date(dateString).toLocaleDateString();
+                },
+
+                getAssignmentCount() {
+                    if (!this.allAssignments) return 0;
+                    return this.allAssignments.filter(assignment => assignment.coachId).length;
+                },
+
+                getMyCoachName() {
+                    // For archers - find their assigned coach
+                    if (!this.allAssignments || !this.userInfo?.profile) return null;
+                    
+                    const myAssignment = this.allAssignments.find(
+                        assignment => assignment.archerId === this.userInfo.profile.id
+                    );
+                    
+                    if (myAssignment && myAssignment.coach) {
+                        return `${myAssignment.coach.firstName || ''} ${myAssignment.coach.lastName || ''}`.trim() || myAssignment.coach.user?.email;
+                    }
+                    
+                    return null;
+                },
+
+                logout() {
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('user_info');
+                    this.redirectToLogin();
+                },
+
+                redirectToLogin() {
+                    window.location.href = 'login.html';
+                }
+            }
+        }).mount('#app');
+    </script>
 </body>
 </html>

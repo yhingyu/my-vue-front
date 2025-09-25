@@ -1,0 +1,17 @@
+<!-- Header -->
+<header class="dashboard-header">
+    <div class="header-content">
+        <div class="header-left">
+            <h1>🏹 My Archery Club</h1>
+            <div class="role-badge">
+                <span>{{ userInfo?.role || 'User' }} Dashboard</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="user-info">
+                <span>Welcome, {{ getUserDisplayName() }}!</span>
+                <button @click="logout" class="logout-btn">Logout</button>
+            </div>
+        </div>
+    </div>
+</header>

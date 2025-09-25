@@ -1,0 +1,59 @@
+<!-- Archers Tab (Coach only) -->
+<div v-if="activeTab === 'archers' && isCoach()" class="tab-content">
+    <h2>My Assigned Archers</h2>
+    
+    <div class="management-section">
+        <button @click="loadMyArchers" class="btn btn-primary">🔄 Refresh My Archers</button>
+        
+        <div v-if="myArchersLoading" class="loading">Loading your assigned archers...</div>
+        <div v-else-if="myArchers.length === 0" class="no-data">
+            <p>No archers assigned to you yet.</p>
+        </div>
+        <div v-else class="archers-grid">
+            <div v-for="archer in myArchers" :key="archer.id" class="archer-card">
+                <div class="archer-header">
+                    <h4>{{ getArcherName(archer) }}</h4>
+                    <p class="archer-email">{{ archer.user?.email }}</p>
+                </div>
+                <div class="archer-details">
+                    <p v-if="archer.dateJoined"><strong>Joined:</strong> {{ formatDate(archer.dateJoined) }}</p>
+                    <p v-if="archer.coachAssignedDate"><strong>Assigned:</strong> {{ formatDate(archer.coachAssignedDate) }}</p>
+                    <p v-if="archer.gender"><strong>Gender:</strong> {{ archer.gender }}</p>
+                    <p v-if="archer.phone"><strong>Contact:</strong> {{ archer.phone }}</p>
+                </div>
+                <div class="archer-actions">
+                    <button @click="viewArcherProfile(archer)" class="btn btn-sm btn-outline">View Profile</button>
+                    <button @click="removeMyArcherAssignment(archer.id)" class="btn btn-sm btn-danger">Remove Assignment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Archers Section -->
+    <div class="management-section">
+        <h3>Available Archers (Unassigned)</h3>
+        <button @click="loadUnassignedArchers" class="btn btn-primary">🔄 Refresh List</button>
+        
+        <div v-if="unassignedArchersLoading" class="loading">Loading available archers...</div>
+        <div v-else-if="unassignedArchers.length === 0" class="no-data">
+            <p>No unassigned archers available.</p>
+        </div>
+        <div v-else class="archers-grid">
+            <div v-for="archer in unassignedArchers" :key="archer.id" class="archer-card available">
+                <div class="archer-header">
+                    <h4>{{ getArcherName(archer) }}</h4>
+                    <p class="archer-email">{{ archer.user?.email }}</p>
+                </div>
+                <div class="archer-details">
+                    <p v-if="archer.dateJoined"><strong>Joined:</strong> {{ formatDate(archer.dateJoined) }}</p>
+                    <p v-if="archer.gender"><strong>Gender:</strong> {{ archer.gender }}</p>
+                    <p v-if="archer.phone"><strong>Contact:</strong> {{ archer.phone }}</p>
+                </div>
+                <div class="archer-actions">
+                    <button @click="viewArcherProfile(archer)" class="btn btn-sm btn-outline">View Profile</button>
+                    <button @click="assignArcherToMe(archer.id)" class="btn btn-sm btn-success">Assign to Me</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

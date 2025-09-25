@@ -1,0 +1,36 @@
+<!-- Users Tab (Admin only) -->
+<div v-if="activeTab === 'users' && isAdmin()" class="tab-content">
+    <h2>User Management</h2>
+    <button @click="showCreateForm = true" class="btn btn-primary">Create New User</button>
+    
+    <div v-if="usersLoading" class="loading">Loading users...</div>
+    <div v-else class="table-container">
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Suffix</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="user in users" :key="user.id">
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.profile?.firstName || '-' }}</td>
+                    <td>{{ user.profile?.lastName || '-' }}</td>
+                    <td>{{ user.profile?.suffix || '-' }}</td>
+                    <td>{{ user.role }}</td>
+                    <td>{{ user.isActive ? 'Active' : 'Inactive' }}</td>
+                    <td>
+                        <button @click="editUser(user)" class="btn btn-sm">Edit</button>
+                        <button @click="deleteUser(user)" class="btn btn-sm btn-danger">Delete</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
